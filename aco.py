@@ -1,29 +1,41 @@
 import random
-
+import numpy as np
+# TODO eksperyment z odnoszeniem się do tabu
 
 class Graph(object):
     def __init__(self, cost_matrix: list, rank: int):
         """
-        :param cost_matrix:
-        :param rank: rank of the cost matrix
+        :param cost_matrix: macierz kosztów przejscia - odległości między dźwiękami - większa odległość = większy koszt
+        :param rank: liczba węzłów grafu
         """
         self.matrix = cost_matrix
         self.rank = rank
+        # print(rank)
         # noinspection PyUnusedLocal
-        self.pheromone = [[1 / (rank * rank) for j in range(rank)] for i in range(rank)]
+        self.pheromone = [[self.put_pheromone(i, j) for j in range(rank)] for i in range(rank)]
+        # self.pheromone = [[1 / (rank * rank) for j in range(rank)] for i in range(rank)]
+        # print(self.pheromone)
+
+    def put_pheromone(self, i: int, j: int):  # zainicjowanie śladu feromonowego zgodnie z oryginalną melodią
+        # print(i, j)
+        if j == i+1:
+            return 10
+        else:
+            return 1 / (self.rank * self.rank)
+
 
 
 class ACO(object):
     def __init__(self, ant_count: int, generations: int, alpha: float, beta: float, rho: float, q: int,
                  strategy: int):
         """
-        :param ant_count:
-        :param generations:
-        :param alpha: relative importance of pheromone
-        :param beta: relative importance of heuristic information
-        :param rho: pheromone residual coefficient
-        :param q: pheromone intensity
-        :param strategy: pheromone update strategy. 0 - ant-cycle, 1 - ant-quality, 2 - ant-density
+        :param ant_count: liczba mrówek
+        :param generations: liczba iteracji
+        :param alpha: ważność feromonu
+        :param beta: ważność informacji heurystycznej
+        :param rho: współczynnik odparowania śladu feromonowego
+        :param q: intensywność feromonu
+        :param strategy: strategia aktualizacji śladu feromonowego. 0 - ant-cycle, 1 - ant-quality, 2 - ant-density
         """
         self.Q = q
         self.rho = rho
@@ -69,12 +81,13 @@ class _Ant(object):
         self.colony = aco
         self.graph = graph
         self.total_cost = 0.0
-        self.tabu = []  # tabu list
-        self.pheromone_delta = []  # the local increase of pheromone
-        self.allowed = [i for i in range(graph.rank)]  # nodes which are allowed for the next selection
+        self.tabu = []  # lista tabu
+        self.pheromone_delta = []  # lokalny przyrost feromonu
+        self.allowed = [i for i in range(graph.rank)]  # dozwolone węzły do wyboru jako następny
         self.eta = [[0 if i == j else 1 / graph.matrix[i][j] for j in range(graph.rank)] for i in
-                    range(graph.rank)]  # heuristic information
-        start = random.randint(0, graph.rank - 1)  # start from any node
+                    range(graph.rank)]  # informacja heurystyczna
+        start = random.randint(0, graph.rank - 1)  # rozpoczęcie z losowego węzła
+        # start = 0  # rozpoczęcie z pierwszego - zawsze zagra oryginalną melodię
         self.tabu.append(start)
         self.current = start
         self.allowed.remove(start)
@@ -85,15 +98,16 @@ class _Ant(object):
             denominator += self.graph.pheromone[self.current][i] ** self.colony.alpha * self.eta[self.current][
                                                                                             i] ** self.colony.beta
         # noinspection PyUnusedLocal
-        probabilities = [0 for i in range(self.graph.rank)]  # probabilities for moving to a node in the next step
+        probabilities = [0 for i in range(self.graph.rank)]  # prawdopodobieństwa przemieszczenia się do węzła w kolejnym kroku
         for i in range(self.graph.rank):
             try:
-                self.allowed.index(i)  # test if allowed list contains i
+                self.allowed.index(i)  # sprawdzenie czy lista dozwolonych węzłów zawiera i-ty
                 probabilities[i] = self.graph.pheromone[self.current][i] ** self.colony.alpha * \
-                    self.eta[self.current][i] ** self.colony.beta / denominator
+                    self.eta[self.current][i] ** self.colony.beta / denominator  # TODO Gdzieś tutaj jakaś reguła że jeśli węzeł już był w tabu to prawdopodobieństwa przejścia jest mniejsze
             except ValueError:
-                pass  # do nothing
-        # select next node by probability roulette
+                pass  # nie rób nic
+        # wybierz następny węzeł przez ruletkę prawdopodobieństwa
+        # selected = probabilities.index(max(probabilities))  # albo wybór po prostu największego prawdopodobieństwa
         selected = 0
         rand = random.random()
         for i, probability in enumerate(probabilities):
