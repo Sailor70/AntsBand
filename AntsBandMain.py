@@ -39,9 +39,9 @@ def msg2dict(msg):
 def main():
 
     # mid = MidiFile('data/simple-Am-melody.mid', clip=True)
-    mid = MidiFile('data/simple-Am-melody2.mid', clip=True)  # mid.tracks[2]
+    # mid = MidiFile('data/simple-Am-melody2.mid', clip=True)  # mid.tracks[2]
     # mid = MidiFile('data/a-minor-pentatonic-scale-on-treble-clef.mid', clip=True) # mid.tracks[1]
-    # mid = MidiFile('data/Am-melody+bas.mid', clip=True)  # mid.tracks[2] + mid.tracks[2]
+    mid = MidiFile('data/Am-melody+bas.mid', clip=True)  # mid.tracks[2] + mid.tracks[2]
     # mid = MidiFile('FishPolka.mid', clip=True)
 
     notes = []  # zawiera wysokości kolejno zagranych dźwięków w oryginalnej ścieżce
@@ -74,17 +74,20 @@ def main():
 
     # buduje plik wynikowy modyfikując oryginalny track zastępując w nim eventy midi
     pathCounter = 0
+    print(melodyTrack)
     for event in range(len(melodyTrack)):
         if isinstance(melodyTrack[event], Message):
             message, on_ = msg2dict(str(melodyTrack[event]))
             if on_:
-                melodyTrack[event] = notesMessages[path[pathCounter]][0]
-
-                melodyTrack[event+1] = notesMessages[path[pathCounter]][1]  # potencjalnie coś się tu psuje z pauzą
+                noteMessage, on_must_be = msg2dict(str(notesMessages[path[pathCounter]][0]))  # weź tą nute do dicta
+                # utwórz nowy message, ale daj odpowiedni czas
+                melodyTrack[event] = Message('note_on', channel=0, note=noteMessage['note'], velocity=noteMessage['velocity'], time=message['time'])
+                melodyTrack[event+1] = notesMessages[path[pathCounter]][1]
                 # print(notesMessages[path[pathCounter]][0])
                 # print(notesMessages[path[pathCounter]][1])
                 pathCounter += 1
 
+    print(melodyTrack)
     mid.tracks[2] = melodyTrack  # wybrana ścieżka z melodią
     mid.save("data/result.mid")
     prepare_and_play("data/result.mid")
