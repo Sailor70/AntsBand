@@ -58,7 +58,7 @@ def getNewACOMelodyForInstrument(notes: list):
         for j in range(rank):
             row.append(distance(notes[i], notes[j]))
         cost_matrix.append(row)
-    aco = ACO(10, 10, 5.0, 2, 0.1, 1, 2)  # ACO(1, 1, 5.0, 0, 0.01, 1, 2) - ustawienie do odtworzenia orginalnego
+    aco = ACO(10, 10, 1.0, 5, 0.1, 1, 2)  # ACO(1, 1, 5.0, 0, 0.01, 1, 2) - ustawienie do odtworzenia orginalnego
     # utworu ( ale tylko gdy mrówka zaczenie w dobrym miejscu - w nucie początkowej ? - to zagra tak samo)
     # aco = ACO(10, 100, 1.0, 8.0, 0.5, 10, 2)
     graph = Graph(cost_matrix, rank)
@@ -71,21 +71,25 @@ def getNewACOMelodyForInstrument(notes: list):
 def buildNewMelodyTrack(melodyTrack: MidiTrack, path: list, notesMessages: list):
     pathCounter = 0
     for event in range(len(melodyTrack)):
-        if isinstance(melodyTrack[event], Message):
-            oldMessage, on_ = msg2dict(str(melodyTrack[event]))
-            if on_:
-                newMessage, on_must_be = msg2dict(str(notesMessages[path[pathCounter]][0]))  # weź tą nute do dicta
-                # utwórz nowy message, ale daj odpowiedni czas
-                melodyTrack[event] = Message('note_on', channel=newMessage['channel'], note=newMessage['note'], velocity=newMessage['velocity'], time=oldMessage['time'])
-                melodyTrack[event+1] = notesMessages[path[pathCounter]][1]
-                pathCounter += 1
+        # if isinstance(melodyTrack[event], Message):
+        oldMessage, on_ = msg2dict(str(melodyTrack[event]))
+        if on_ and (pathCounter < len(path)):
+            newMessage, on_must_be = msg2dict(str(notesMessages[path[pathCounter]][0]))  # weź tą nute do dicta
+            # utwórz nowy message, ale daj odpowiedni czas - czasy trwania nut pozostają z oryginalnego utworu
+            melodyTrack[event] = Message('note_on', channel=oldMessage['channel'], note=newMessage['note'], velocity=newMessage['velocity'], time=oldMessage['time'])
+            # utworzenie pauzy starej długości ale nuty nowej wysokości
+            oldOffMessage, off_ = msg2dict(str(melodyTrack[event+1]))
+            newOffMessage, off = msg2dict(str(notesMessages[path[pathCounter]][1]))
+            melodyTrack[event+1] = Message('note_off', channel=oldOffMessage['channel'], note=newOffMessage['note'], velocity=newOffMessage['velocity'], time=oldOffMessage['time'])
+            pathCounter += 1
     return melodyTrack
 
 
 def main():
-    midiFile = MidiFile('data/Am-melody+bas.mid', clip=True)  # TODO zrobić klase i to globalnie + dostęp przez self
-    leadTrackNumber = 2
-    basTrackNumber = 3
+    # midiFile = MidiFile('data/Am-melody+bas.mid', clip=True)
+    midiFile = MidiFile('data/theRockingAnt.mid', clip=True)  # TODO zrobić klase i to globalnie + dostęp przez self
+    leadTrackNumber = 3
+    basTrackNumber = 2
 
     # odczyt nut i eventów midi ze ścieżek
     leadNotes, leadNotesMessages = readNotesFromTrack(midiFile.tracks[leadTrackNumber])
