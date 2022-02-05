@@ -58,7 +58,8 @@ def getNewACOMelodyForInstrument(notes: list):
         for j in range(rank):
             row.append(distance(notes[i], notes[j]))
         cost_matrix.append(row)
-    aco = ACO(10, 10, 1.0, 5, 0.1, 1, 2)  # ACO(1, 1, 5.0, 0, 0.01, 1, 2) - ustawienie do odtworzenia orginalnego
+    aco = ACO(10, 10, 1.0, 5, 0.1, 1, 2)
+    # ACO(1, 1, 5.0, 0, 0.01, 1, 2) - ustawienie do odtworzenia orginalnego
     # utworu ( ale tylko gdy mrówka zaczenie w dobrym miejscu - w nucie początkowej ? - to zagra tak samo)
     # aco = ACO(10, 100, 1.0, 8.0, 0.5, 10, 2)
     graph = Graph(cost_matrix, rank)
@@ -78,7 +79,7 @@ def buildNewMelodyTrack(melodyTrack: MidiTrack, path: list, notesMessages: list)
             # utwórz nowy message, ale daj odpowiedni czas - czasy trwania nut pozostają z oryginalnego utworu
             melodyTrack[event] = Message('note_on', channel=oldMessage['channel'], note=newMessage['note'], velocity=newMessage['velocity'], time=oldMessage['time'])
             # utworzenie pauzy starej długości ale nuty nowej wysokości
-            oldOffMessage, off_ = msg2dict(str(melodyTrack[event+1]))
+            oldOffMessage, off_ = msg2dict(str(melodyTrack[event+1]))  # TODO zabezpieczenie gdy nie ma note_off zaraz po note_on lub są w innej kolejności
             newOffMessage, off = msg2dict(str(notesMessages[path[pathCounter]][1]))
             melodyTrack[event+1] = Message('note_off', channel=oldOffMessage['channel'], note=newOffMessage['note'], velocity=newOffMessage['velocity'], time=oldOffMessage['time'])
             pathCounter += 1
@@ -88,7 +89,7 @@ def buildNewMelodyTrack(melodyTrack: MidiTrack, path: list, notesMessages: list)
 def main():
     # midiFile = MidiFile('data/Am-melody+bas.mid', clip=True)
     midiFile = MidiFile('data/theRockingAnt.mid', clip=True)  # TODO zrobić klase i to globalnie + dostęp przez self
-    leadTrackNumber = 3
+    leadTrackNumber = 3  # tablica + pętle do tego
     basTrackNumber = 2
 
     # odczyt nut i eventów midi ze ścieżek

@@ -1,5 +1,4 @@
 import random
-import numpy as np
 # TODO eksperyment z odnoszeniem się do tabu
 
 class Graph(object):
@@ -10,14 +9,9 @@ class Graph(object):
         """
         self.matrix = cost_matrix
         self.rank = rank
-        # print(rank)
-        # noinspection PyUnusedLocal
         self.pheromone = [[self.put_pheromone(i, j) for j in range(rank)] for i in range(rank)]
-        # self.pheromone = [[1 / (rank * rank) for j in range(rank)] for i in range(rank)]
-        # print(self.pheromone)
 
     def put_pheromone(self, i: int, j: int):  # zainicjowanie śladu feromonowego zgodnie z oryginalną melodią
-        # print(i, j)
         if j == i+1:
             return 10
         else:
@@ -107,20 +101,19 @@ class _Ant(object):
             except ValueError:
                 pass  # nie rób nic
         # wybierz następny węzeł przez ruletkę prawdopodobieństwa
-        # selected = probabilities.index(max(probabilities))  # albo wybór po prostu największego prawdopodobieństwa
-        selected = 0
-        rand = random.random()
-        for i, probability in enumerate(probabilities):
-            rand -= probability
-            if rand <= 0:
-                selected = i
-                break
+        selected = probabilities.index(max(probabilities))  # albo wybór po prostu największego prawdopodobieństwa
+        # selected = 0
+        # rand = random.random()
+        # for i, probability in enumerate(probabilities):
+        #     rand -= probability
+        #     if rand <= 0:
+        #         selected = i
+        #         break
         self.allowed.remove(selected)
         self.tabu.append(selected)
         self.total_cost += self.graph.matrix[self.current][selected]
         self.current = selected
 
-    # noinspection PyUnusedLocal
     def _update_pheromone_delta(self):
         self.pheromone_delta = [[0 for j in range(self.graph.rank)] for i in range(self.graph.rank)]
         for _ in range(1, len(self.tabu)):
