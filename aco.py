@@ -18,7 +18,6 @@ class Graph(object):
             return 1 / (self.rank * self.rank)
 
 
-
 class ACO(object):
     def __init__(self, ant_count: int, generations: int, alpha: float, beta: float, rho: float, q: int,
                  strategy: int):
