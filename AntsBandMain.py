@@ -45,7 +45,7 @@ class AntsBand(object):
                     str.maketrans({a: None for a in string.punctuation})))
         return [result, on_]
 
-    def readNotesFromTrack(self, melodyTrack: MidiTrack):
+    def readNotesFromTrack(self, melodyTrack: MidiTrack):  # TODO od razu cięcie na frazy tu zrobić?
         notes = []  # zawiera wysokości kolejno zagranych dźwięków w oryginalnej ścieżce
         notesMessages = []  # zawiera kolejne pełne eventy midi z oryginalnej ścieżki
         for event in range(len(melodyTrack)):  # przeanalizuj każdy event midi z ścieżki
@@ -98,22 +98,44 @@ class AntsBand(object):
                 pathCounter += 1
         return melodyTrack
 
+    def line_notes_messages_to_phrases(self, line_notes_messages: list, ticksPerPhrase: int):
+        phrases = []
+        phrase_notes_messages = []
+        phrase_counter = 0
+        for message in line_notes_messages:  # jedzie po duetach
+            event_duo = []
+            for event in message:  # tutaj wejście do pary note_on i note_off - event_duo
+                message, on_ = self.msg2dict(str(event))
+                # print(message['time'])
+                phrase_counter += message['time']
+                event_duo.append(event)
+                # print(phrase_counter)
+                if phrase_counter >= ticksPerPhrase:  # TODO cięcie w połowie duetu - co zrobić?
+                    print("phrase counter: ", phrase_counter)
+                    phrases.append(phrase_notes_messages)
+                    phrase_notes_messages = []
+                    phrase_counter = 0
+            phrase_notes_messages.append(event_duo)
+        return phrases
+
     def start(self):
+        print(self.midiFile.tracks[0][0])
+        print("Ticks per bit: ", self.midiFile.ticks_per_beat)  # jeden bit to 96 tickow
+        msg = str(self.midiFile.tracks[0][0])
+        meter = int(msg[msg.rfind('numerator'):].split(' ')[0].split('=')[1][0])
+        print("meter: ", meter)
+        tactsInPhrase = 2
+        ticksPerPhrase = self.midiFile.ticks_per_beat * meter * tactsInPhrase
+        print("Ticks per phrase: ", ticksPerPhrase)
+
         for trackNumber in self.tracksNumbers:
             # odczyt nut i eventów midi ze ścieżek
             lineNotes, lineNotesMessages = self.readNotesFromTrack(self.midiFile.tracks[trackNumber])
+            # print(self.midiFile.tracks[trackNumber])
+            # Cięcie na frazy
+            phrases_notes_messages = self.line_notes_messages_to_phrases(lineNotesMessages, ticksPerPhrase)
+            # print(phrases_notes_messages)
 
-            # tutaj podział na frazy
-            # print(self.midiFile.tracks[0][0])
-            # print("Ticks per bit: ", self.midiFile.ticks_per_beat)  # jeden bit to 96 tickow
-            # msg = str(self.midiFile.tracks[0][0])
-            # meter = int(msg[msg.rfind('numerator'):].split(' ')[0].split('=')[1][0])
-            # print(meter)
-            # tactsInPhrase = 2
-            # ticksPerPhrase = self.midiFile.ticks_per_beat * meter * tactsInPhrase
-            # print(ticksPerPhrase)
-
-            # TODO teraz cięcie na frazy
             # ACO dla lini melodycznych
             linePath = self.getNewACOMelodyForInstrument(lineNotes)
             # utworzenie nowej ścieżki dla instrumentu
@@ -122,9 +144,10 @@ class AntsBand(object):
             self.midiFile.tracks[trackNumber] = lineMelodyTrack
 
         self.midiFile.save("data/result.mid")
-        prepare_and_play("data/result.mid")
+        # prepare_and_play("data/result.mid")
 
 
-# if __name__ == '__main__':
-#     antsBand = AntsBand(MidiFile('data/theRockingAnt.mid', clip=True), [2, 3])
-#     antsBand.start()
+
+if __name__ == '__main__':
+    antsBand = AntsBand(MidiFile('data/theRockingAnt.mid', clip=True), [2, 3])
+    antsBand.start()

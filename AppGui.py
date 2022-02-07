@@ -4,6 +4,7 @@ from tkinter.filedialog import askopenfile
 import os
 
 from mido import MidiFile
+from midiPlayer import prepare_and_play
 
 from AntsBandMain import AntsBand
 
@@ -32,19 +33,21 @@ class MainWindow:  # (Frame)
 
         #  self.makeform(master)
         self.file_label = Label(master, text="Wybierz pik midi", font="Raleway")
-        self.paths_label = Label(master, text="Ścieżki do przekomponowania: ", font="Raleway")
+        self.paths_label = Label(master, text="Ścieżki: ", font="Raleway")
         self.browse_btn = Button(root, text="Wybierz", command=lambda: self.open_file(), font="Raleway", bg="#41075e", fg="white", height=2, width=15)
         # vcmd = self.master.register(self.validate)  # we have to wrap the command
         self.paths_entry = Entry(master)
         self.start_btn = Button(master, text='Komponuj', command=lambda: self.startAntsBand(), font="Raleway", bg="#41075e", fg="white", height=2, width=15)
+        self.play_btn = Button(master, text='Graj', command=lambda: self.play(), font="Raleway", bg="#41075e", fg="white", height=2, width=15)
         self.exit_btn = Button(root, text='Zakończ', command=self.master.destroy, font="Raleway", bg="#41075e", fg="white", height=2, width=15)
 
-        self.file_label.grid(column=0, row=0)
-        self.browse_btn.grid(column=1, row=0)
-        self.paths_label.grid(column=0, row=1)
-        self.paths_entry.grid(column=1, row=1)
+        self.file_label.grid(row=0, column=0)
+        self.browse_btn.grid(row=0, column=1)
+        self.paths_label.grid(row=1, column=0)
+        self.paths_entry.grid(row=1, column=1)
         self.start_btn.grid(row=2, column=0)
-        self.exit_btn.grid(row=2, column=1)
+        self.play_btn.grid(row=2, column=1)
+        self.exit_btn.grid(row=2, column=2)
         # self.button = Button(master, text='Open', command=self.openNext)
         # self.button.pack()
 
@@ -64,6 +67,9 @@ class MainWindow:  # (Frame)
         # antsBand = AntsBand(MidiFile('data/theRockingAnt.mid', clip=True), [2, 3])
         antsBand = AntsBand(MidiFile(self.midi_file_name, clip=True), self.selected_paths)
         antsBand.start()
+
+    def play(selfself):
+        prepare_and_play("data/result.mid")
 
     # def validate(self, new_text):
     #     if not new_text:  # the field is being cleared
