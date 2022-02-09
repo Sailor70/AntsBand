@@ -22,7 +22,7 @@ class MainWindow:  # (Frame)
     def __init__(self, master):
         # super().__init__(master)
         self.master = master
-        master.title("Point and Click")
+        master.title("AntsBand 1.0")
         master.geometry("500x300")
         # master.resizable(False, False)
         self.midi_file_name = ''
@@ -37,7 +37,7 @@ class MainWindow:  # (Frame)
         self.browse_btn = Button(root, text="Wybierz", command=lambda: self.open_file(), font="Raleway", bg="#41075e", fg="white", height=2, width=15)
         # vcmd = self.master.register(self.validate)  # we have to wrap the command
         self.paths_entry = Entry(master)
-        self.start_btn = Button(master, text='Komponuj', command=lambda: self.startAntsBand(), font="Raleway", bg="#41075e", fg="white", height=2, width=15)
+        self.start_btn = Button(master, text='Komponuj', command=lambda: self.start_ants_band(), font="Raleway", bg="#41075e", fg="white", height=2, width=15)
         self.play_btn = Button(master, text='Graj', command=lambda: self.play(), font="Raleway", bg="#41075e", fg="white", height=2, width=15)
         self.exit_btn = Button(root, text='Zakończ', command=self.master.destroy, font="Raleway", bg="#41075e", fg="white", height=2, width=15)
 
@@ -60,13 +60,13 @@ class MainWindow:  # (Frame)
             self.file_label.config(text=os.path.basename(file.name))
             self.midi_file_name = file.name
 
-    def startAntsBand(self):
+    def start_ants_band(self):
         # period rate:
         self.selected_paths = [int(numeric_string) for numeric_string in str(self.paths_entry.get()).split(",")]  # walidacje ogarnąć
         print(self.selected_paths)
-        # antsBand = AntsBand(MidiFile('data/theRockingAnt.mid', clip=True), [2, 3])
-        antsBand = AntsBand(MidiFile(self.midi_file_name, clip=True), self.selected_paths)
-        antsBand.start()
+        # ants_band = AntsBand(MidiFile('data/theRockingAnt.mid', clip=True), [2, 3])
+        ants_band = AntsBand(MidiFile(self.midi_file_name, clip=True), self.selected_paths)
+        ants_band.start()
 
     def play(selfself):
         prepare_and_play("data/result.mid")
