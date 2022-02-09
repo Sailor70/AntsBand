@@ -9,16 +9,18 @@ from plot import plot
 
 
 class AntsBand(object):
-    def __init__(self, midi_file: MidiFile, tracks_numbers: [int]):
+    def __init__(self, midi_file: MidiFile, tracks_numbers: [int], keep_old_timing: bool,
+                 ant_count: int, generations: int, alpha: float, beta: float, rho: float, q: int):
         self.midi_file = midi_file  # strings podawać i tworzyć objekt
         self.tracks_numbers = tracks_numbers  # tracksNumbers  # tablica + pętle do tego
         self.available_distances = [0.1, 0.5, 1, 5, 10, 100]
-        # self.Q = q
-        # self.rho = rho
-        # self.beta = beta
-        # self.alpha = alpha
-        # self.ant_count = ant_count
-        # self.generations = generations
+        self.keep_old_timing = keep_old_timing
+        self.Q = q
+        self.rho = rho
+        self.beta = beta
+        self.alpha = alpha
+        self.ant_count = ant_count
+        self.generations = generations
 
     def distance(self, a: int, b: int):
         result = abs(a - b)
@@ -68,7 +70,8 @@ class AntsBand(object):
             for j in range(rank):
                 row.append(self.distance(notes[i], notes[j]))
             cost_matrix.append(row)
-        aco = ACO(10, 10, 1.0, 5, 0.1, 1, 2)
+        aco = ACO(self.ant_count, self.generations, self.alpha, self.beta, self.rho, self.Q, 2)
+        # aco = ACO(10, 10, 1.0, 5, 0.1, 1, 2)
         # ACO(1, 1, 5.0, 0, 0.01, 1, 2) - ustawienie do odtworzenia orginalnego
         # utworu ( ale tylko gdy mrówka zaczenie w dobrym miejscu - w nucie początkowej ? - to zagra tak samo)
         # aco = ACO(10, 100, 1.0, 8.0, 0.5, 10, 2)
@@ -86,15 +89,16 @@ class AntsBand(object):
             if on_ and (path_counter < len(path)):
                 new_message, on_must_be = self.msg2dict(str(notes_messages[path[path_counter]][0]))  # weź tą nute do dicta
                 # utwórz nowy message, ale daj odpowiedni czas - czasy trwania nut pozostają z oryginalnego utworu
-                melody_track[event] = Message('note_on', channel=old_message['channel'], note=new_message['note'],
-                                              velocity=new_message['velocity'], time=old_message['time'])
+                melody_track[event] = Message('note_on', channel=old_message['channel'], note=new_message['note'], velocity=new_message['velocity'], time=old_message['time'])\
+                    if self.keep_old_timing \
+                    else Message('note_on', channel=old_message['channel'], note=new_message['note'], velocity=new_message['velocity'], time=new_message['time'])
                 # utworzenie pauzy starej długości ale nuty nowej wysokości
                 old_off_message, off_ = self.msg2dict(str(melody_track[
                                                             event + 1]))  # TODO zabezpieczenie gdy nie ma note_off zaraz po note_on lub są w innej kolejności
                 new_off_message, off = self.msg2dict(str(notes_messages[path[path_counter]][1]))
-                melody_track[event + 1] = Message('note_off', channel=old_off_message['channel'],
-                                                  note=new_off_message['note'],
-                                                  velocity=new_off_message['velocity'], time=old_off_message['time'])
+                melody_track[event + 1] = Message('note_off', channel=old_off_message['channel'], note=new_off_message['note'], velocity=new_off_message['velocity'], time=old_off_message['time'])\
+                    if self.keep_old_timing\
+                    else Message('note_off', channel=old_off_message['channel'], note=new_off_message['note'], velocity=new_off_message['velocity'], time=new_off_message['time'])
                 path_counter += 1
         return melody_track
 
@@ -102,19 +106,30 @@ class AntsBand(object):
         phrases = []
         phrase_notes_messages = []
         phrase_counter = 0
-        for message in line_notes_messages:  # jedzie po duetach
+        next_phrase_off_time = 0
+        for message_duo in line_notes_messages:  # jedzie po duetach
             event_duo = []
-            for event in message:  # tutaj wejście do pary note_on i note_off - event_duo
+            for event in message_duo:  # tutaj wejście do pary note_on i note_off - event_duo
                 message, on_ = self.msg2dict(str(event))
                 # print(message['time'])
                 phrase_counter += message['time']
                 event_duo.append(event)
-                # print(phrase_counter)
-                if phrase_counter >= ticks_per_phrase:  # TODO cięcie w połowie duetu - co zrobić? + jak jedna pauza w aktualnej i kolejnej frazie to za dużo nalicza
-                    print("phrase counter: ", phrase_counter)
+                if phrase_counter >= ticks_per_phrase:  # dokładnie odliczona fraza
+                    print(phrase_counter)
                     phrases.append(phrase_notes_messages)
                     phrase_notes_messages = []
                     phrase_counter = 0
+                # elif phrase_counter > ticks_per_phrase:  # trzeba utworzyć dodatkowy event na końcu frazy - na razie gdy przecina pauza
+                #     message, on_ = self.msg2dict(str(event_duo[1]))
+                #     remaining_time = phrase_counter - message['time']  # tyle czasu trzeba dać na ten dodatkowy event
+                #     additional_off_event = Message('note_off', channel=message['channel'], note=message['note'],
+                #                               velocity=message['velocity'], time=remaining_time)
+                #     next_phrase_off_time = phrase_counter - ticks_per_phrase
+                #     event_duo[1] = additional_off_event
+                #     phrase_notes_messages.append(event_duo)
+                #     phrases.append(phrase_notes_messages)
+                #     phrase_notes_messages = []
+                #     phrase_counter = 0
             phrase_notes_messages.append(event_duo)
         return phrases
 
@@ -125,7 +140,7 @@ class AntsBand(object):
         meter = int(msg[msg.rfind('numerator'):].split(' ')[0].split('=')[1][0])
         print("meter: ", meter)
         tacts_in_phrase = 2
-        ticks_per_phrase = self.midi_file.ticks_per_beat * meter * tacts_in_phrase
+        ticks_per_phrase = self.midi_file.ticks_per_beat * meter * tacts_in_phrase - 5  #
         print("Ticks per phrase: ", ticks_per_phrase)
 
         for track_number in self.tracks_numbers:
@@ -133,7 +148,7 @@ class AntsBand(object):
             line_notes, line_notes_messages = self.read_notes_from_track(self.midi_file.tracks[track_number])
             # print(self.midi_file.tracks[track_number])
             # Cięcie na frazy
-            phrases_notes_messages = self.line_notes_messages_to_phrases(line_notes_messages, ticks_per_phrase)
+            # phrases_notes_messages = self.line_notes_messages_to_phrases(line_notes_messages, ticks_per_phrase)
             # print(phrases_notes_messages)
 
             # ACO dla lini melodycznych
@@ -144,10 +159,9 @@ class AntsBand(object):
             self.midi_file.tracks[track_number] = line_melody_track
 
         self.midi_file.save("data/result.mid")
-        prepare_and_play("data/result.mid")
-
+        # prepare_and_play("data/result.mid")
 
 
 if __name__ == '__main__':
-    antsBand = AntsBand(MidiFile('data/theRockingAnt.mid', clip=True), [2, 3])
+    antsBand = AntsBand(MidiFile('data/theRockingAnt.mid', clip=True), [2, 3], True, 10, 10, 1.0, 5, 0.1, 1)
     antsBand.start()
