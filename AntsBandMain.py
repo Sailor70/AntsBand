@@ -1,6 +1,9 @@
+from __future__ import division
+
 import random
 import string
 
+import numpy as np
 from mido import Message, MidiTrack
 from mido import MidiFile
 from aco import ACO, Graph
@@ -21,6 +24,7 @@ class AntsBand(object):
         self.alpha = alpha
         self.ant_count = ant_count
         self.generations = generations
+        self.clocks_per_click = 24
 
     def distance(self, a: int, b: int):
         result = abs(a - b)
@@ -81,6 +85,30 @@ class AntsBand(object):
         plot(notes, path)  # wykres
         return path
 
+    #  TODO przerobić by najpierw iterowało po eventach
+    def build_new_melody_track_from_phrases(self, melody_track: MidiTrack, phrase_paths: list, phrases_notes_messages: list, order: [int]):
+        range_counter = len(phrase_paths[0])
+        for i in order:
+            print(phrases_notes_messages)
+            path_counter = 0
+            for event in range(i * range_counter, i * range_counter + range_counter):  # musi przeskakiwać na kolejne eventy według fraz, a wchodzi na meta messages i nie puszcza dalej
+                old_message, on_ = self.msg2dict(str(melody_track[event]))
+                if on_ and (path_counter < len(phrase_paths[i])):
+                    print(event)
+                    new_message, on_must_be = self.msg2dict(str(phrases_notes_messages[i][phrase_paths[i][path_counter]][0]))
+                    melody_track[event] = Message('note_on', channel=old_message['channel'], note=new_message['note'], velocity=new_message['velocity'], time=old_message['time'])\
+                        if self.keep_old_timing \
+                        else Message('note_on', channel=old_message['channel'], note=new_message['note'], velocity=new_message['velocity'], time=self.quantizeRound(new_message['time']))
+                    old_off_message, off_ = self.msg2dict(str(melody_track[
+                                                                event + 1]))
+                    new_off_message, off = self.msg2dict(str(phrases_notes_messages[i][phrase_paths[i][path_counter]][1]))
+                    melody_track[event + 1] = Message('note_off', channel=old_off_message['channel'], note=new_off_message['note'], velocity=new_off_message['velocity'], time=old_off_message['time'])\
+                        if self.keep_old_timing\
+                        else Message('note_off', channel=old_off_message['channel'], note=new_off_message['note'], velocity=new_off_message['velocity'], time=self.quantizeRound(new_off_message['time']))
+                    path_counter += 1
+            # range_counter += len(phrase_paths[i])
+        return melody_track
+
     def build_new_melody_track(self, melody_track: MidiTrack, path: list, notes_messages: list):
         path_counter = 0
         for event in range(len(melody_track)):
@@ -91,16 +119,26 @@ class AntsBand(object):
                 # utwórz nowy message, ale daj odpowiedni czas - czasy trwania nut pozostają z oryginalnego utworu
                 melody_track[event] = Message('note_on', channel=old_message['channel'], note=new_message['note'], velocity=new_message['velocity'], time=old_message['time'])\
                     if self.keep_old_timing \
-                    else Message('note_on', channel=old_message['channel'], note=new_message['note'], velocity=new_message['velocity'], time=new_message['time'])
+                    else Message('note_on', channel=old_message['channel'], note=new_message['note'], velocity=new_message['velocity'], time=self.quantizeRound(new_message['time']))
                 # utworzenie pauzy starej długości ale nuty nowej wysokości
                 old_off_message, off_ = self.msg2dict(str(melody_track[
                                                             event + 1]))  # TODO zabezpieczenie gdy nie ma note_off zaraz po note_on lub są w innej kolejności
                 new_off_message, off = self.msg2dict(str(notes_messages[path[path_counter]][1]))
                 melody_track[event + 1] = Message('note_off', channel=old_off_message['channel'], note=new_off_message['note'], velocity=new_off_message['velocity'], time=old_off_message['time'])\
                     if self.keep_old_timing\
-                    else Message('note_off', channel=old_off_message['channel'], note=new_off_message['note'], velocity=new_off_message['velocity'], time=new_off_message['time'])
+                    else Message('note_off', channel=old_off_message['channel'], note=new_off_message['note'], velocity=new_off_message['velocity'], time=self.quantizeRound(new_off_message['time']))
                 path_counter += 1
         return melody_track
+
+    def quantizeRound(self, value):
+        # print(self.clocks_per_click)
+        # print(value, " -> ", self.clocks_per_click * round(value / self.clocks_per_click))
+        # jakaś reguła że jak value < 16 to nie daje 0, ale wtedy dalsza część się rozjedzie
+
+        # if value < 8:
+        #     return int(4 * round(value / 4))
+        # else:
+        return int(self.clocks_per_click * round(value / self.clocks_per_click))  # przy tym tracimy krótkie dźwięki
 
     def line_notes_messages_to_phrases(self, line_notes_messages: list, ticks_per_phrase: int):
         phrases = []
@@ -134,23 +172,17 @@ class AntsBand(object):
         return phrases
 
     def start(self):
-        print(self.midi_file.tracks[0][0])
-        print("Ticks per bit: ", self.midi_file.ticks_per_beat)  # jeden bit to 96 tickow
-        msg = str(self.midi_file.tracks[0][0])
-        meter = int(msg[msg.rfind('numerator'):].split(' ')[0].split('=')[1][0])
-        print("meter: ", meter)
+        self.clocks_per_click = self.midi_file.tracks[0][0].clocks_per_click
+        meter = self.midi_file.tracks[0][0].numerator
+        self.clocks_per_click = self.midi_file.tracks[0][0].clocks_per_click
         tacts_in_phrase = 2
         ticks_per_phrase = self.midi_file.ticks_per_beat * meter * tacts_in_phrase - 5  #
-        print("Ticks per phrase: ", ticks_per_phrase)
-
         for track_number in self.tracks_numbers:
             # odczyt nut i eventów midi ze ścieżek
             line_notes, line_notes_messages = self.read_notes_from_track(self.midi_file.tracks[track_number])
-            # print(self.midi_file.tracks[track_number])
             # Cięcie na frazy
             # phrases_notes_messages = self.line_notes_messages_to_phrases(line_notes_messages, ticks_per_phrase)
             # print(phrases_notes_messages)
-
             # ACO dla lini melodycznych
             line_path = self.get_new_aco_melody_for_instrument(line_notes)
             # utworzenie nowej ścieżki dla instrumentu
@@ -159,9 +191,47 @@ class AntsBand(object):
             self.midi_file.tracks[track_number] = line_melody_track
 
         self.midi_file.save("data/result.mid")
-        # prepare_and_play("data/result.mid")
+        prepare_and_play("data/result.mid")
+
+    def start_and_divide(self):
+        print(self.midi_file.tracks[0][0])
+        print("Ticks per bit: ", self.midi_file.ticks_per_beat)  # jeden bit to 96 tickow
+        msg = str(self.midi_file.tracks[0][0])
+        meter = int(msg[msg.rfind('numerator'):].split(' ')[0].split('=')[1][0])
+        self.clocks_per_click = self.midi_file.tracks[0][0].clocks_per_click
+        print("meter: ", meter)
+        tacts_in_phrase = 2
+        ticks_per_phrase = self.midi_file.ticks_per_beat * meter * tacts_in_phrase - 5  #
+        print("Ticks per phrase: ", ticks_per_phrase)
+
+        for track_number in self.tracks_numbers:
+            # odczyt nut i eventów midi ze ścieżek
+            line_notes, line_notes_messages = self.read_notes_from_track(self.midi_file.tracks[track_number])
+            print(len(line_notes))
+            split = 4  # TODO wyciagnać na front
+            # Cięcie na frazy
+            # phrases_notes_messages = self.line_notes_messages_to_phrases(line_notes_messages, ticks_per_phrase)
+            # print(phrases_notes_messages)
+            phrase_notes = np.array_split(line_notes, split)
+            phrases_notes_messages = np.array_split(line_notes_messages, split)
+            phrase_paths = []
+            order = []
+            for i in range(split):
+                phrase_paths.append(self.get_new_aco_melody_for_instrument(phrase_notes[i]))
+                order.append(i)
+            random.shuffle(order)  # losowanie kolejności tablic - może mrówkami?
+            print(order)
+            print(phrase_paths)
+            # utworzenie ścieżki z wcześniej mrówkowanych fraz - może lepiej użyć starej funkcji i zmergować wcześniej path?
+            line_melody_track = self.build_new_melody_track_from_phrases(self.midi_file.tracks[track_number], phrase_paths, phrases_notes_messages, order)
+            # # utworzenie pliku wynikowego przez podmianę ścieżek
+            self.midi_file.tracks[track_number] = line_melody_track
+
+        self.midi_file.save("data/result.mid")
+        prepare_and_play("data/result.mid")
 
 
 if __name__ == '__main__':
-    antsBand = AntsBand(MidiFile('data/theRockingAnt.mid', clip=True), [2, 3], True, 10, 10, 1.0, 5, 0.1, 1)
-    antsBand.start()
+    antsBand = AntsBand(MidiFile('data/theRockingAntDrums.mid', clip=True), [2, 3], True, 10, 10, 1.0, 5, 0.1, 1)
+    # antsBand.start()
+    antsBand.start_and_divide()
