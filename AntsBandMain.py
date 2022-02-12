@@ -130,7 +130,7 @@ class AntsBand(object):
             self.midi_file.tracks[track_number] = line_melody_track
 
         self.midi_file.save("data/result.mid")
-        prepare_and_play("data/result.mid")
+        # prepare_and_play("data/result.mid")
 
     def ordered_phrases_to_single_path(self, phrase_paths: list, phrases_notes_messages: list, order: [int]):
         line_path = []
@@ -166,7 +166,7 @@ class AntsBand(object):
             self.midi_file.tracks[track_number] = line_melody_track
 
         self.midi_file.save("data/result.mid")
-        prepare_and_play("data/result.mid")
+        # prepare_and_play("data/result.mid")
 
 
 if __name__ == '__main__':

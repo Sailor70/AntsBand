@@ -31,9 +31,11 @@ class MainWindow:  # (Frame)
         self.selected_paths = []
         self.keep_old_timing = BooleanVar()
         self.keep_old_timing.set(True)
+        self.split_tracks = BooleanVar()
+        self.split_tracks.set(False)
 
         canvas = Canvas(master, width=500, height=300)
-        canvas.grid(columnspan=3, rowspan=5)
+        canvas.grid(columnspan=3, rowspan=6)
 
         """
         :param ant_count: liczba mrówek
@@ -52,8 +54,10 @@ class MainWindow:  # (Frame)
         # vcmd = self.master.register(self.validate)  # we have to wrap the command
         self.paths_entry = Entry(master)
         self.keep_timing_checkbox = Checkbutton(master, text='Zachowaj timing', variable=self.keep_old_timing)
+        self.split_tracks_checkbox = Checkbutton(master, text='Podziel ścieżki', variable=self.split_tracks)
         vcmdInt = (master.register(self.validateInt), '%d', '%i', '%P', '%s', '%S', '%v', '%V', '%W')
         vcmdFloat = (master.register(self.validateFloat), '%d', '%i', '%P', '%s', '%S', '%v', '%V', '%W')
+        self.split_entry = Entry(master, text='Liczba części', validate="key", validatecommand=vcmdInt)
         self.ant_count_entry = Entry(master, text='liczba mrówek', validate="key", validatecommand=vcmdInt)
         self.generations = Entry(master, text='liczba iteracji', validate="key", validatecommand=vcmdInt)
         self.alpha = Entry(master, text='alpha', validate="key", validatecommand=vcmdFloat)
@@ -69,15 +73,17 @@ class MainWindow:  # (Frame)
         self.paths_label.grid(row=1, column=0)
         self.paths_entry.grid(row=1, column=1)
         self.keep_timing_checkbox.grid(row=1, column=2)
-        self.ant_count_entry.grid(row=2, column=0)
-        self.generations.grid(row=2, column=1)
-        self.alpha.grid(row=2, column=2)
-        self.beta.grid(row=3, column=0)
-        self.rho.grid(row=3, column=1)
-        self.q.grid(row=3, column=2)
-        self.start_btn.grid(row=4, column=0)
-        self.play_btn.grid(row=4, column=1)
-        self.exit_btn.grid(row=4, column=2)
+        self.split_tracks_checkbox.grid(row=2, column=0)
+        self.split_entry.grid(row=2, column=1)
+        self.ant_count_entry.grid(row=3, column=0)
+        self.generations.grid(row=3, column=1)
+        self.alpha.grid(row=3, column=2)
+        self.beta.grid(row=4, column=0)
+        self.rho.grid(row=4, column=1)
+        self.q.grid(row=4, column=2)
+        self.start_btn.grid(row=5, column=0)
+        self.play_btn.grid(row=5, column=1)
+        self.exit_btn.grid(row=5, column=2)
 
         self.ant_count_entry.insert(END, 10)
         self.generations.insert(END, 10)
@@ -85,6 +91,7 @@ class MainWindow:  # (Frame)
         self.beta.insert(END, 5)
         self.rho.insert(END, 0.1)
         self.q.insert(END, 1)
+        self.split_entry.insert(END, 4)
 
         ant_count_entry_tip = Balloon(master)
         generations_tip = Balloon(master)
@@ -92,6 +99,7 @@ class MainWindow:  # (Frame)
         beta_tip = Balloon(master)
         rho_tip = Balloon(master)
         q_tip = Balloon(master)
+        split_tip = Balloon(master)
 
         ant_count_entry_tip.bind_widget(self.ant_count_entry, balloonmsg="liczba mrówek")
         generations_tip.bind_widget(self.generations, balloonmsg="liczba iteracji")
@@ -99,6 +107,7 @@ class MainWindow:  # (Frame)
         beta_tip.bind_widget(self.beta, balloonmsg="ważność informacji heurystycznej")
         rho_tip.bind_widget(self.rho, balloonmsg="współczynnik odparowania śladu feromonowego")
         q_tip.bind_widget(self.q, balloonmsg="intensywność feromonu")
+        split_tip.bind_widget(self.split_entry, balloonmsg="Liczba części")
 
 
         # self.button = Button(master, text='Open', command=self.openNext)
@@ -121,7 +130,10 @@ class MainWindow:  # (Frame)
         ants_band = AntsBand(MidiFile(self.midi_file_name, clip=True), self.selected_paths, self.keep_old_timing.get(),
                              int(self.ant_count_entry.get()), int(self.generations.get()), float(self.alpha.get()),
                              float(self.beta.get()), float(self.rho.get()), int(self.q.get()))
-        ants_band.start()
+        if self.split_tracks.get():
+            ants_band.start_and_divide(int(self.split_entry.get()))
+        else:
+            ants_band.start()
 
     def play(selfself):
         prepare_and_play("data/result.mid")
