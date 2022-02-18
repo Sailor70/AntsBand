@@ -70,11 +70,11 @@ class MainWindow:  # (Frame)
 
         self.file_label.grid(row=0, column=0)
         self.browse_btn.grid(row=0, column=1)
-        self.paths_label.grid(row=1, column=0)
-        self.paths_entry.grid(row=1, column=1)
-        self.keep_timing_checkbox.grid(row=1, column=2)
+        # self.paths_label.grid(row=1, column=0)
+        # self.paths_entry.grid(row=1, column=1)
         self.split_tracks_checkbox.grid(row=2, column=0)
         self.split_entry.grid(row=2, column=1)
+        self.keep_timing_checkbox.grid(row=2, column=2)
         self.ant_count_entry.grid(row=3, column=0)
         self.generations.grid(row=3, column=1)
         self.alpha.grid(row=3, column=2)
@@ -109,6 +109,9 @@ class MainWindow:  # (Frame)
         q_tip.bind_widget(self.q, balloonmsg="intensywność feromonu")
         split_tip.bind_widget(self.split_entry, balloonmsg="Liczba części")
 
+        self.start_btn["state"] = "disabled"
+        self.play_btn["state"] = "disabled"
+
 
         # self.button = Button(master, text='Open', command=self.openNext)
         # self.button.pack()
@@ -121,6 +124,17 @@ class MainWindow:  # (Frame)
             # text_box.grid(column=2, row=0)
             self.file_label.config(text=os.path.basename(file.name))
             self.midi_file_name = file.name
+        mid = MidiFile(self.midi_file_name, clip=True)
+        instruments = []
+        for i in range(len(mid.tracks)):
+            for msg in mid.tracks[i]:
+                if hasattr(msg, 'name'):  # isinstance(msg, MetaMessage) and
+                    instruments.append({'name': msg.name, 'id': i})  # potrzebujemy nazwę instrumentu i index ścieżki
+        print(instruments)
+        self.start_btn["state"] = "normal"
+        for j in range(len(instruments)):
+            c = Checkbutton(self.master, text=instruments[j]['name'])
+            c.grid(row=1, column=j)  # TODO podpięcie wyboru instrumentów i usunięcie starych checkboxów po zmianie utworu
 
     def start_ants_band(self):
         # period rate:
@@ -134,6 +148,7 @@ class MainWindow:  # (Frame)
             ants_band.start_and_divide(int(self.split_entry.get()))
         else:
             ants_band.start()
+        self.play_btn["state"] = "normal"
 
     def play(selfself):
         prepare_and_play("data/result.mid")
