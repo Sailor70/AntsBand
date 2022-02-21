@@ -25,16 +25,17 @@ class MainWindow:  # (Frame)
         # super().__init__(master)
         self.master = master
         master.title("AntsBand 1.0")
-        master.geometry("500x300")
+        master.geometry("600x300")
         # master.resizable(False, False)
         self.midi_file_name = ''
-        self.selected_paths = []
+        self.paths_checkbox_dict = {}
+        self.instruments = []
         self.keep_old_timing = BooleanVar()
         self.keep_old_timing.set(True)
         self.split_tracks = BooleanVar()
         self.split_tracks.set(False)
 
-        canvas = Canvas(master, width=500, height=300)
+        canvas = Canvas(master, width=600, height=300)
         canvas.grid(columnspan=3, rowspan=6)
 
         """
@@ -52,7 +53,6 @@ class MainWindow:  # (Frame)
         self.paths_label = Label(master, text="Ścieżki: ", font="Raleway")
         self.browse_btn = Button(master, text="Wybierz", command=lambda: self.open_file(), font="Raleway", bg="#41075e", fg="white", height=1, width=15)
         # vcmd = self.master.register(self.validate)  # we have to wrap the command
-        self.paths_entry = Entry(master)
         self.keep_timing_checkbox = Checkbutton(master, text='Zachowaj timing', variable=self.keep_old_timing)
         self.split_tracks_checkbox = Checkbutton(master, text='Podziel ścieżki', variable=self.split_tracks)
         vcmdInt = (master.register(self.validateInt), '%d', '%i', '%P', '%s', '%S', '%v', '%V', '%W')
@@ -69,9 +69,7 @@ class MainWindow:  # (Frame)
         self.exit_btn = Button(master, text='Zakończ', command=self.master.destroy, font="Raleway", bg="#41075e", fg="white", height=1, width=15)
 
         self.file_label.grid(row=0, column=0)
-        self.browse_btn.grid(row=0, column=1)
-        # self.paths_label.grid(row=1, column=0)
-        # self.paths_entry.grid(row=1, column=1)
+        self.browse_btn.grid(row=0, column=2)
         self.split_tracks_checkbox.grid(row=2, column=0)
         self.split_entry.grid(row=2, column=1)
         self.keep_timing_checkbox.grid(row=2, column=2)
@@ -112,36 +110,40 @@ class MainWindow:  # (Frame)
         self.start_btn["state"] = "disabled"
         self.play_btn["state"] = "disabled"
 
-
-        # self.button = Button(master, text='Open', command=self.openNext)
-        # self.button.pack()
-
     def open_file(self):
         file = askopenfile(parent=self.master, mode='rb', title="Wybierz plik midi", filetypes=[("Midi file", "*.mid")])
         if file:
-            # text_box = Text(self.master, height=10, width=50, padx=15, pady=15)
-            # text_box.insert(1.0, file.name)
-            # text_box.grid(column=2, row=0)
             self.file_label.config(text=os.path.basename(file.name))
             self.midi_file_name = file.name
         mid = MidiFile(self.midi_file_name, clip=True)
-        instruments = []
-        for i in range(len(mid.tracks)):
+        self.init_instruments_checkboxes(mid)
+
+    def init_instruments_checkboxes(self, mid: MidiFile):
+        self.instruments = []
+        for label in self.master.grid_slaves():  # usunięcie starych checkboxów
+            if int(label.grid_info()["row"]) == 1:
+                label.grid_forget()
+        for i in range(len(mid.tracks)):  # szukanie instrumentów w pliku
             for msg in mid.tracks[i]:
-                if hasattr(msg, 'name'):  # isinstance(msg, MetaMessage) and
-                    instruments.append({'name': msg.name, 'id': i})  # potrzebujemy nazwę instrumentu i index ścieżki
-        print(instruments)
+                if hasattr(msg, 'name'):
+                    self.instruments.append(
+                        {'name': msg.name, 'id': i})  # potrzebujemy nazwę instrumentu i index ścieżki
+        print(self.instruments)
         self.start_btn["state"] = "normal"
-        for j in range(len(instruments)):
-            c = Checkbutton(self.master, text=instruments[j]['name'])
-            c.grid(row=1, column=j)  # TODO podpięcie wyboru instrumentów i usunięcie starych checkboxów po zmianie utworu
+        for j in range(len(self.instruments)):  # utworzenie checkboxów
+            var = IntVar()
+            c = Checkbutton(self.master, text=self.instruments[j]['name'], variable=var)
+            self.paths_checkbox_dict[self.instruments[j]['id']] = var
+            c.grid(row=1, column=j)
 
     def start_ants_band(self):
-        # period rate:
-        self.selected_paths = [int(numeric_string) for numeric_string in str(self.paths_entry.get()).split(",")]  # walidacje ogarnąć
-        print(self.selected_paths)
+        selected_paths = []
+        for track_number, check in self.paths_checkbox_dict.items():
+            if check.get() == 1:
+                selected_paths.append(track_number)
+        print(selected_paths)
         # ants_band = AntsBand(MidiFile('data/theRockingAnt.mid', clip=True), [2, 3])
-        ants_band = AntsBand(MidiFile(self.midi_file_name, clip=True), self.selected_paths, self.keep_old_timing.get(),
+        ants_band = AntsBand(MidiFile(self.midi_file_name, clip=True), selected_paths, self.keep_old_timing.get(),
                              int(self.ant_count_entry.get()), int(self.generations.get()), float(self.alpha.get()),
                              float(self.beta.get()), float(self.rho.get()), int(self.q.get()))
         if self.split_tracks.get():
@@ -175,24 +177,7 @@ class MainWindow:  # (Frame)
         else:
             return False
 
-    # def validate(self, new_text):
-    #     if not new_text:  # the field is being cleared
-    #         self.selected_paths = []
-    #         return True
-    #     try:
-    #         self.selected_paths = [int(numeric_string) for numeric_string in str(new_text).split(",")]
-    #         print(self.selected_paths)
-    #         return True
-    #     except ValueError:
-    #         return False
 
-    # open next window
-    # def openNext(self):
-    #     self.newWindow = Toplevel(self.master)
-    #     self.app = NextWindow(self.newWindow)
-
-
-# main program #
 root = tix.Tk()
 app = MainWindow(root)
 root.mainloop()
