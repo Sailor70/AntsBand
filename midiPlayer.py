@@ -1,5 +1,6 @@
 import pygame
 
+
 def play_music(music_file):
     clock = pygame.time.Clock()
     try:
@@ -12,6 +13,10 @@ def play_music(music_file):
     while pygame.mixer.music.get_busy():
         # check if playback has finished
         clock.tick(30)
+
+
+def pause_music():
+    pygame.mixer.music.pause()
 
 
 def prepare_and_play(file):

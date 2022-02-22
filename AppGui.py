@@ -1,23 +1,93 @@
 # import tkinter as tk
 from tkinter import *
-from tkinter import tix
+from tkinter import tix, messagebox
 from tkinter.filedialog import askopenfile
 import os
 from tkinter.tix import Balloon
+import threading
 
+from matplotlib import pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from mido import MidiFile
-from midiPlayer import prepare_and_play
-
+from midiPlayer import prepare_and_play, pause_music
 from AntsBandMain import AntsBand
 
 
-class NextWindow:
-    def __init__(self, master):
+class ResultWindow:
+    def __init__(self, master, midi_file: MidiFile, tracks_data):
         self.master = master
-        master.title("Next")
-        self.button = Button(master, text='Close',  command=master.destroy)
-        self.button.pack()
+        master.title("Uzyskany wynik")
+        master.geometry("500x600")
 
+        self.midi_file = midi_file
+        self.tracks_data = tracks_data
+        self.is_playing = False
+        self.radio_var = IntVar()
+
+        canvas = Canvas(master, width=500, height=600)
+        canvas.grid(columnspan=3, rowspan=4)
+
+        self.play_pause_btn = Button(master, text="Graj", command=lambda: self.play_pause(), font="Raleway", bg="#41075e", fg="white", height=1, width=15)
+        self.save_btn = Button(master, text="Zapisz plik", command=lambda: self.save(), font="Raleway", bg="#41075e", fg="white", height=1, width=15)
+        self.close_btn = Button(master, text='Zamknij', command=master.destroy, font="Raleway", bg="#41075e", fg="white", height=1, width=15)
+        self.sepatate_btn = Button(master, text='Odseparuj ścieżkę', command=lambda: self.separate_track(), font="Raleway", bg="#41075e", fg="white", height=1, width=15)
+
+        self.play_pause_btn.grid(row=0, column=0, sticky='n')
+        self.save_btn.grid(row=0, column=1, sticky='n')
+        self.close_btn.grid(row=0, column=2, sticky='n')
+        self.sepatate_btn.grid(row=3, column=0, sticky='n')
+
+        for i in range(len(tracks_data)):
+            for msg in tracks_data[i]['line_melody_track']:
+                if hasattr(msg, 'name'):
+                    radio_btn = Radiobutton(self.master, text=msg.name, variable=self.radio_var, value=i, command=self.print_plot)
+                    radio_btn.grid(row=1, column=i, sticky='new')
+                    break
+
+    def print_plot(self):
+        points = self.tracks_data[self.radio_var.get()]['line_notes']
+        path = self.tracks_data[self.radio_var.get()]['line_path']
+        x = []
+        y = []
+        for i in range(len(points)):
+            x.append(i)
+            y.append(points[path[i]])
+        figure3 = plt.Figure(figsize=(5, 4), dpi=100)
+        ax3 = figure3.add_subplot(111)
+        ax3.scatter(x, y, color='g')
+        scatter3 = FigureCanvasTkAgg(figure3, self.master)
+        scatter3.get_tk_widget().grid(row=2, column=0, columnspan=3, sticky="enw")
+        ax3.legend(['Wartości kolejnych nut'])
+        ax3.set_xlabel('Czas')
+        ax3.set_title('Linia melodyczna instrumentu')
+
+        # return messagebox.showinfo('PythonGuides', f'You Selected {output}.')
+
+    def refresh(self):
+        self.master.update()
+        self.master.after(100,self.refresh)
+
+    def play_pause(self):
+        self.midi_file.save("data/result.mid")
+        self.refresh()
+        threading.Thread(target=prepare_and_play("data/result.mid")).start()
+        self.master.update()
+        # if not self.is_playing:
+        #     self.play_pause_btn.config(text="Pauza")
+        #     threading.Thread(target=prepare_and_play("data/result.mid")).start()
+        #     self.master.update()
+        #     # prepare_and_play("data/result.mid")
+        #     self.is_playing = True
+        # else:
+        #     # pause_music()
+        #     threading.Thread(target=pause_music()).start()
+        #     self.play_pause_btn.config(text="Graj")
+
+    def save(self):
+        self.midi_file.save("data/result.mid")
+
+    def separate_track(self):
+        return 0
 
 class MainWindow:  # (Frame)
 
@@ -27,6 +97,8 @@ class MainWindow:  # (Frame)
         master.title("AntsBand 1.0")
         master.geometry("600x300")
         # master.resizable(False, False)
+
+        # zmienne pomocnicze
         self.midi_file_name = ''
         self.paths_checkbox_dict = {}
         self.instruments = []
@@ -48,11 +120,10 @@ class MainWindow:  # (Frame)
         :param strategy: strategia aktualizacji śladu feromonowego. 0 - ant-cycle, 1 - ant-quality, 2 - ant-density
         """
 
-        #  self.makeform(master)
+        # definicje elementów layoutu
         self.file_label = Label(master, text="Wybierz pik midi", font="Raleway")
         self.paths_label = Label(master, text="Ścieżki: ", font="Raleway")
         self.browse_btn = Button(master, text="Wybierz", command=lambda: self.open_file(), font="Raleway", bg="#41075e", fg="white", height=1, width=15)
-        # vcmd = self.master.register(self.validate)  # we have to wrap the command
         self.keep_timing_checkbox = Checkbutton(master, text='Zachowaj timing', variable=self.keep_old_timing)
         self.split_tracks_checkbox = Checkbutton(master, text='Podziel ścieżki', variable=self.split_tracks)
         vcmdInt = (master.register(self.validateInt), '%d', '%i', '%P', '%s', '%S', '%v', '%V', '%W')
@@ -68,8 +139,9 @@ class MainWindow:  # (Frame)
         self.play_btn = Button(master, text='Graj', command=lambda: self.play(), font="Raleway", bg="#41075e", fg="white", height=1, width=15)
         self.exit_btn = Button(master, text='Zakończ', command=self.master.destroy, font="Raleway", bg="#41075e", fg="white", height=1, width=15)
 
-        self.file_label.grid(row=0, column=0)
-        self.browse_btn.grid(row=0, column=2)
+        # położenie elementów layoutu
+        self.file_label.grid(row=0, column=1, columnspan=2)
+        self.browse_btn.grid(row=0, column=0)
         self.split_tracks_checkbox.grid(row=2, column=0)
         self.split_entry.grid(row=2, column=1)
         self.keep_timing_checkbox.grid(row=2, column=2)
@@ -128,6 +200,7 @@ class MainWindow:  # (Frame)
                 if hasattr(msg, 'name'):
                     self.instruments.append(
                         {'name': msg.name, 'id': i})  # potrzebujemy nazwę instrumentu i index ścieżki
+                    break
         print(self.instruments)
         self.start_btn["state"] = "normal"
         for j in range(len(self.instruments)):  # utworzenie checkboxów
@@ -147,9 +220,11 @@ class MainWindow:  # (Frame)
                              int(self.ant_count_entry.get()), int(self.generations.get()), float(self.alpha.get()),
                              float(self.beta.get()), float(self.rho.get()), int(self.q.get()))
         if self.split_tracks.get():
-            ants_band.start_and_divide(int(self.split_entry.get()))
+            midi_file, tracks_data = ants_band.start_and_divide(int(self.split_entry.get()))
+            self.openNext(midi_file, tracks_data)
         else:
-            ants_band.start()
+            midi_file, tracks_data = ants_band.start()
+            self.openNext(midi_file, tracks_data)
         self.play_btn["state"] = "normal"
 
     def play(selfself):
@@ -176,6 +251,10 @@ class MainWindow:  # (Frame)
                 return False
         else:
             return False
+
+    def openNext(self, midi_file, tracks_data):
+        self.newWindow = Toplevel(self.master)
+        self.app = ResultWindow(self.newWindow, midi_file, tracks_data)
 
 
 root = tix.Tk()

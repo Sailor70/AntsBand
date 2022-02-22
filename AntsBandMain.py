@@ -6,7 +6,7 @@ from mido import Message, MidiTrack
 from mido import MidiFile
 from aco import ACO, Graph
 from midiPlayer import prepare_and_play
-from plot import plot
+from AntsBandActions import plot
 
 
 class AntsBand(object):
@@ -117,6 +117,7 @@ class AntsBand(object):
 
     def start(self):
         self.clocks_per_click = self.midi_file.tracks[0][0].clocks_per_click
+        tracks_data = []
         for track_number in self.tracks_numbers:
             # odczyt nut i eventów midi ze ścieżek
             line_notes, line_notes_messages = self.read_notes_from_track(self.midi_file.tracks[track_number])
@@ -127,8 +128,10 @@ class AntsBand(object):
             line_melody_track = self.build_new_melody_track(self.midi_file.tracks[track_number], line_path, line_notes_messages)
             # utworzenie pliku wynikowego przez podmianę ścieżek
             self.midi_file.tracks[track_number] = line_melody_track
+            tracks_data.append({'track_number': track_number, 'line_path': line_path, 'line_notes': line_notes, 'line_melody_track': line_melody_track})
 
-        self.midi_file.save("data/result.mid")
+        return [self.midi_file, tracks_data]
+        # self.midi_file.save("data/result.mid")
         # prepare_and_play("data/result.mid")
 
     def ordered_phrases_to_single_path(self, phrase_paths: list, phrases_notes_messages: list, phrase_notes: list, order: [int]):
@@ -148,6 +151,7 @@ class AntsBand(object):
     def start_and_divide(self, split: int):
         # print(self.midi_file.tracks[0][0])
         self.clocks_per_click = self.midi_file.tracks[0][0].clocks_per_click
+        tracks_data = []
         for track_number in self.tracks_numbers:
             # odczyt nut i eventów midi ze ścieżek
             line_notes, line_notes_messages = self.read_notes_from_track(self.midi_file.tracks[track_number])
@@ -167,8 +171,10 @@ class AntsBand(object):
             line_melody_track = self.build_new_melody_track(self.midi_file.tracks[track_number], line_path, line_notes_messages)
             # # utworzenie pliku wynikowego przez podmianę ścieżek
             self.midi_file.tracks[track_number] = line_melody_track
+            tracks_data.append({'track_number': track_number, 'line_path': line_path, 'line_notes': line_notes, 'line_melody_track': line_melody_track})
 
-        self.midi_file.save("data/result.mid")
+        return [self.midi_file, tracks_data]
+        # self.midi_file.save("data/result.mid")
         # prepare_and_play("data/result.mid")
 
 
