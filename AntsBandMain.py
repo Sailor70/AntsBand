@@ -1,5 +1,3 @@
-from __future__ import division
-
 import random
 import string
 
@@ -82,7 +80,7 @@ class AntsBand(object):
         graph = Graph(cost_matrix, rank)
         path, cost = aco.solve(graph)
         print('cost: {}, path: {}'.format(cost, path))
-        plot(notes, path)  # wykres
+        # plot(notes, path)  # wykres
         return path
 
     def build_new_melody_track(self, melody_track: MidiTrack, path: list, notes_messages: list):
@@ -111,10 +109,10 @@ class AntsBand(object):
         # print(self.clocks_per_click)
         # print(value, " -> ", self.clocks_per_click * round(value / self.clocks_per_click))
         # jakaś reguła że jak value < 16 to nie daje 0, ale wtedy dalsza część się rozjedzie
-
         # if value < 8:
         #     return int(4 * round(value / 4))
         # else:
+        # TODO poprawiona kwantyzacja
         return int(self.clocks_per_click * round(value / self.clocks_per_click))  # przy tym tracimy krótkie dźwięki
 
     def start(self):
@@ -124,6 +122,7 @@ class AntsBand(object):
             line_notes, line_notes_messages = self.read_notes_from_track(self.midi_file.tracks[track_number])
             # ACO dla lini melodycznych
             line_path = self.get_new_aco_melody_for_instrument(line_notes)
+            plot(line_notes, line_path)
             # utworzenie nowej ścieżki dla instrumentu
             line_melody_track = self.build_new_melody_track(self.midi_file.tracks[track_number], line_path, line_notes_messages)
             # utworzenie pliku wynikowego przez podmianę ścieżek
@@ -132,16 +131,19 @@ class AntsBand(object):
         self.midi_file.save("data/result.mid")
         # prepare_and_play("data/result.mid")
 
-    def ordered_phrases_to_single_path(self, phrase_paths: list, phrases_notes_messages: list, order: [int]):
+    def ordered_phrases_to_single_path(self, phrase_paths: list, phrases_notes_messages: list, phrase_notes: list, order: [int]):
         line_path = []
         line_notes_messages = []
+        line_notes = []  # potrzebne do sumarycznego wykresu
         for i in order:
             line_notes_messages.append(phrases_notes_messages[i])
+            line_notes.append(phrase_notes[i])
             phrase_paths[i] = [x+i*len(phrase_paths[i]) for x in phrase_paths[i]]  # przemnożenie indeksów
             line_path.append(phrase_paths[i])
         line_path = [item for sublist in line_path for item in sublist]  # redukcja wymiaru tablicy z 3 na 2 wymiary
         line_notes_messages = [item for sublist in line_notes_messages for item in sublist]
-        return [line_path, line_notes_messages]
+        line_notes = [item for sublist in line_notes for item in sublist]
+        return [line_path, line_notes_messages, line_notes]
 
     def start_and_divide(self, split: int):
         # print(self.midi_file.tracks[0][0])
@@ -159,7 +161,8 @@ class AntsBand(object):
             random.shuffle(order)  # losowanie kolejności tablic - może mrówkami?
             print(order)
             print(phrase_paths)
-            line_path, line_notes_messages = self.ordered_phrases_to_single_path(phrase_paths, phrases_notes_messages, order)
+            line_path, line_notes_messages, line_notes = self.ordered_phrases_to_single_path(phrase_paths, phrases_notes_messages, phrase_notes, order)
+            plot(line_notes, line_path)  # sumaryczny wykres dla złożonych w całość fraz
             # utworzenie ścieżki
             line_melody_track = self.build_new_melody_track(self.midi_file.tracks[track_number], line_path, line_notes_messages)
             # # utworzenie pliku wynikowego przez podmianę ścieżek
