@@ -116,7 +116,10 @@ class AntsBand(object):
         return int(self.clocks_per_click * round(value / self.clocks_per_click))  # przy tym tracimy krótkie dźwięki
 
     def start(self):
-        self.clocks_per_click = self.midi_file.tracks[0][0].clocks_per_click
+        try:
+            self.clocks_per_click = self.midi_file.tracks[0][0].clocks_per_click
+        except AttributeError:
+            print("Nie masz w pliku clocks_per_click!")
         tracks_data = []
         for track_number in self.tracks_numbers:
             # odczyt nut i eventów midi ze ścieżek
@@ -140,17 +143,23 @@ class AntsBand(object):
         line_notes = []  # potrzebne do sumarycznego wykresu
         for i in order:
             line_notes_messages.append(phrases_notes_messages[i])
+            # line_notes_messages.extend(phrases_notes_messages[i])  # TODO sprawdzić to i usunąć podwóje fory
             line_notes.append(phrase_notes[i])
+            # line_notes.extend(phrase_notes[i])
             phrase_paths[i] = [x+i*len(phrase_paths[i]) for x in phrase_paths[i]]  # przemnożenie indeksów
             line_path.append(phrase_paths[i])
+            # line_path.extend(phrase_paths[i])
         line_path = [item for sublist in line_path for item in sublist]  # redukcja wymiaru tablicy z 3 na 2 wymiary
         line_notes_messages = [item for sublist in line_notes_messages for item in sublist]
         line_notes = [item for sublist in line_notes for item in sublist]
         return [line_path, line_notes_messages, line_notes]
 
     def start_and_divide(self, split: int):
-        # print(self.midi_file.tracks[0][0])
-        self.clocks_per_click = self.midi_file.tracks[0][0].clocks_per_click
+        print(self.midi_file.tracks[0][0])
+        try:
+            self.clocks_per_click = self.midi_file.tracks[0][0].clocks_per_click
+        except AttributeError:
+            print("Nie masz w pliku clocks_per_click!")
         tracks_data = []
         for track_number in self.tracks_numbers:
             # odczyt nut i eventów midi ze ścieżek

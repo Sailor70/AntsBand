@@ -10,14 +10,16 @@ def play_music(music_file):
         print("File %s not found! (%s)" % (music_file, pygame.get_error()))
         return
     pygame.mixer.music.play()
-    while pygame.mixer.music.get_busy():
+    # while pygame.mixer.music.get_busy():
         # check if playback has finished
-        clock.tick(30)
+        # clock.tick(30)
 
 
 def pause_music():
     pygame.mixer.music.pause()
 
+def stop_music():
+    pygame.mixer.music.stop()
 
 def prepare_and_play(file):
 

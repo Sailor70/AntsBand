@@ -1,6 +1,6 @@
 # import tkinter as tk
 from tkinter import *
-from tkinter import tix, messagebox
+from tkinter import tix, messagebox, filedialog
 from tkinter.filedialog import askopenfile
 import os
 from tkinter.tix import Balloon
@@ -9,7 +9,9 @@ import threading
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from mido import MidiFile
-from midiPlayer import prepare_and_play, pause_music
+
+from AntsBandActions import delete_other_tracks
+from midiPlayer import prepare_and_play, pause_music, stop_music
 from AntsBandMain import AntsBand
 
 
@@ -28,21 +30,17 @@ class ResultWindow:
         canvas.grid(columnspan=3, rowspan=4)
 
         self.play_pause_btn = Button(master, text="Graj", command=lambda: self.play_pause(), font="Raleway", bg="#41075e", fg="white", height=1, width=15)
-        self.save_btn = Button(master, text="Zapisz plik", command=lambda: self.save(), font="Raleway", bg="#41075e", fg="white", height=1, width=15)
-        self.close_btn = Button(master, text='Zamknij', command=master.destroy, font="Raleway", bg="#41075e", fg="white", height=1, width=15)
+        self.stop_btn = Button(master, text='Stop', command=self.stop_playing(), font="Raleway", bg="#41075e", fg="white", height=1, width=15)
+        self.save_btn = Button(master, text="Zapisz plik", command=lambda: self.save_file(), font="Raleway", bg="#41075e", fg="white", height=1, width=15)
         self.sepatate_btn = Button(master, text='Odseparuj ścieżkę', command=lambda: self.separate_track(), font="Raleway", bg="#41075e", fg="white", height=1, width=15)
 
-        self.play_pause_btn.grid(row=0, column=0, sticky='n')
-        self.save_btn.grid(row=0, column=1, sticky='n')
-        self.close_btn.grid(row=0, column=2, sticky='n')
+        self.play_pause_btn.grid(row=0, column=0, sticky='n', pady=15)
+        self.stop_btn.grid(row=0, column=1, sticky='n', pady=15)
+        self.save_btn.grid(row=0, column=2, sticky='n', pady=15)
         self.sepatate_btn.grid(row=3, column=0, sticky='n')
 
-        for i in range(len(tracks_data)):
-            for msg in tracks_data[i]['line_melody_track']:
-                if hasattr(msg, 'name'):
-                    radio_btn = Radiobutton(self.master, text=msg.name, variable=self.radio_var, value=i, command=self.print_plot)
-                    radio_btn.grid(row=1, column=i, sticky='new')
-                    break
+        self.init_radio_buttons()
+        self.print_plot()
 
     def print_plot(self):
         points = self.tracks_data[self.radio_var.get()]['line_notes']
@@ -63,31 +61,49 @@ class ResultWindow:
 
         # return messagebox.showinfo('PythonGuides', f'You Selected {output}.')
 
+    def init_radio_buttons(self):
+        for i in range(len(self.tracks_data)):
+            for msg in self.tracks_data[i]['line_melody_track']:
+                if hasattr(msg, 'name'):
+                    radio_btn = Radiobutton(self.master, text=msg.name, variable=self.radio_var, value=i, command=self.print_plot)
+                    radio_btn.grid(row=1, column=i, sticky='new')
+                    break
+
     def refresh(self):
         self.master.update()
-        self.master.after(100,self.refresh)
+        self.master.after(1000, self.refresh)
 
-    def play_pause(self):
+    def stop_playing(self):
+        #  stop_music()
+        return 0
+
+    def play_pause(self):  # todo dopracować + stop
         self.midi_file.save("data/result.mid")
         self.refresh()
-        threading.Thread(target=prepare_and_play("data/result.mid")).start()
-        self.master.update()
-        # if not self.is_playing:
-        #     self.play_pause_btn.config(text="Pauza")
-        #     threading.Thread(target=prepare_and_play("data/result.mid")).start()
-        #     self.master.update()
-        #     # prepare_and_play("data/result.mid")
-        #     self.is_playing = True
-        # else:
-        #     # pause_music()
-        #     threading.Thread(target=pause_music()).start()
-        #     self.play_pause_btn.config(text="Graj")
+        # threading.Thread(target=prepare_and_play("data/result.mid"), daemon=True).start()
+        # self.master.update()
+        if not self.is_playing:
+            self.play_pause_btn.config(text="Pauza")
+            threading.Thread(target=prepare_and_play("data/result.mid")).start()
+            self.master.update()
+            # prepare_and_play("data/result.mid")
+            self.is_playing = True
+        else:
+            # pause_music()
+            threading.Thread(target=pause_music()).start()
+            self.play_pause_btn.config(text="Graj")
+            self.is_playing = False
 
-    def save(self):
-        self.midi_file.save("data/result.mid")
+    def save_file(self):
+        path = filedialog.asksaveasfile(mode='w', title="Zapisz plik", defaultextension=".mid", filetypes=(("Midi file", "*.mid"),("All Files", "*.*")))
+        self.midi_file.save(path.name)
 
     def separate_track(self):
-        return 0
+        new_midi = delete_other_tracks(self.midi_file, self.tracks_data[self.radio_var.get()]['track_number'])
+        path = filedialog.asksaveasfile(mode='w', title="Zapisz odseparowaną ścieżkę", defaultextension=".mid", filetypes=(("Midi file", "*.mid"),("All Files", "*.*")))
+        new_midi.save(path.name)
+        self.midi_file = new_midi
+
 
 class MainWindow:  # (Frame)
 
