@@ -11,22 +11,35 @@ def play_music(music_file):
         return
     pygame.mixer.music.play()
     # while pygame.mixer.music.get_busy():
-        # check if playback has finished
-        # clock.tick(30)
+    # check if playback has finished
+    # clock.tick(30)
+
+
+def check_if_playing():
+    if pygame.mixer.get_init():
+        return pygame.mixer.music.get_busy()
 
 
 def pause_music():
-    pygame.mixer.music.pause()
+    if pygame.mixer.get_init():
+        pygame.mixer.music.pause()
+
+
+def unpause_music():
+    if pygame.mixer.get_init():
+        pygame.mixer.music.unpause()
+
 
 def stop_music():
-    pygame.mixer.music.stop()
+    if pygame.mixer.get_init():
+        pygame.mixer.music.stop()
+
 
 def prepare_and_play(file):
-
-    freq = 44100    # audio CD quality
-    bitsize = -16   # unsigned 16 bit
-    channels = 2    # 1 is mono, 2 is stereo
-    buffer = 1024    # number of samples
+    freq = 44100  # audio CD quality
+    bitsize = -16  # unsigned 16 bit
+    channels = 2  # 1 is mono, 2 is stereo
+    buffer = 1024  # number of samples
     pygame.mixer.init(freq, bitsize, channels, buffer)
 
     # optional volume 0 to 1.0

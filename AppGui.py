@@ -11,7 +11,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from mido import MidiFile
 
 from AntsBandActions import delete_other_tracks
-from midiPlayer import prepare_and_play, pause_music, stop_music
+from midiPlayer import *
 from AntsBandMain import AntsBand
 
 
@@ -24,13 +24,14 @@ class ResultWindow:
         self.midi_file = midi_file
         self.tracks_data = tracks_data
         self.is_playing = False
+        self.is_paused = False
         self.radio_var = IntVar()
 
         canvas = Canvas(master, width=500, height=600)
         canvas.grid(columnspan=3, rowspan=4)
 
         self.play_pause_btn = Button(master, text="Graj", command=lambda: self.play_pause(), font="Raleway", bg="#41075e", fg="white", height=1, width=15)
-        self.stop_btn = Button(master, text='Stop', command=self.stop_playing(), font="Raleway", bg="#41075e", fg="white", height=1, width=15)
+        self.stop_btn = Button(master, text='Stop', command=lambda: self.stop_playing(), font="Raleway", bg="#41075e", fg="white", height=1, width=15)
         self.save_btn = Button(master, text="Zapisz plik", command=lambda: self.save_file(), font="Raleway", bg="#41075e", fg="white", height=1, width=15)
         self.sepatate_btn = Button(master, text='Odseparuj ścieżkę', command=lambda: self.separate_track(), font="Raleway", bg="#41075e", fg="white", height=1, width=15)
 
@@ -72,27 +73,36 @@ class ResultWindow:
     def refresh(self):
         self.master.update()
         self.master.after(1000, self.refresh)
+        if check_if_playing():
+            self.is_playing = True
+        else:
+            self.play_pause_btn.config(text="Graj")
+            self.is_playing = False
 
     def stop_playing(self):
-        #  stop_music()
-        return 0
+        stop_music()
+        self.play_pause_btn.config(text="Graj")
+        self.is_playing = False
+        self.is_paused = False
 
-    def play_pause(self):  # todo dopracować + stop
+    def play_pause(self):
         self.midi_file.save("data/result.mid")
         self.refresh()
-        # threading.Thread(target=prepare_and_play("data/result.mid"), daemon=True).start()
-        # self.master.update()
         if not self.is_playing:
-            self.play_pause_btn.config(text="Pauza")
-            threading.Thread(target=prepare_and_play("data/result.mid")).start()
-            self.master.update()
-            # prepare_and_play("data/result.mid")
-            self.is_playing = True
+            if self.is_paused:
+                unpause_music()
+                self.play_pause_btn.config(text="Pauza")
+                self.is_paused = False
+            else:
+                self.play_pause_btn.config(text="Pauza")
+                threading.Thread(target=prepare_and_play("data/result.mid")).start()
+                self.is_playing = True
         else:
             # pause_music()
             threading.Thread(target=pause_music()).start()
             self.play_pause_btn.config(text="Graj")
             self.is_playing = False
+            self.is_paused = True
 
     def save_file(self):
         path = filedialog.asksaveasfile(mode='w', title="Zapisz plik", defaultextension=".mid", filetypes=(("Midi file", "*.mid"),("All Files", "*.*")))
