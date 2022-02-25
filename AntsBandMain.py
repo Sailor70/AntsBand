@@ -10,12 +10,13 @@ from AntsBandActions import plot, evaluate_melody
 
 
 class AntsBand(object):
-    def __init__(self, midi_file: MidiFile, tracks_numbers: [int], keep_old_timing: bool,
+    def __init__(self, midi_file: MidiFile, tracks_numbers: [int], keep_old_timing: bool, result_track_length: int,
                  ant_count: int, generations: int, alpha: float, beta: float, rho: float, q: int):
         self.midi_file = midi_file  # strings podawać i tworzyć objekt
         self.tracks_numbers = tracks_numbers  # tracksNumbers  # tablica + pętle do tego
         self.available_distances = [0.1, 0.5, 1, 5, 10, 100]
         self.keep_old_timing = keep_old_timing
+        self.result_track_length = result_track_length  # TODO dokończyć
         self.Q = q
         self.rho = rho
         self.beta = beta
