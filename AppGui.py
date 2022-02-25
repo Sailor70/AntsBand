@@ -10,19 +10,20 @@ from matplotlib import pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from mido import MidiFile
 
-from AntsBandActions import delete_other_tracks
+from AntsBandActions import *
 from midiPlayer import *
 from AntsBandMain import AntsBand
 
 
 class ResultWindow:
-    def __init__(self, master, midi_file: MidiFile, tracks_data):
+    def __init__(self, master, midi_result: MidiFile, tracks_data, midi_input: MidiFile):
         self.master = master
         master.title("Uzyskany wynik")
         master.geometry("500x600")
 
-        self.midi_file = midi_file
+        self.midi_result = midi_result
         self.tracks_data = tracks_data
+        self.midi_base_input = midi_input
         self.is_playing = False
         self.is_paused = False
         self.radio_var = IntVar()
@@ -34,14 +35,17 @@ class ResultWindow:
         self.stop_btn = Button(master, text='Stop', command=lambda: self.stop_playing(), font="Raleway", bg="#41075e", fg="white", height=1, width=15)
         self.save_btn = Button(master, text="Zapisz plik", command=lambda: self.save_file(), font="Raleway", bg="#41075e", fg="white", height=1, width=15)
         self.sepatate_btn = Button(master, text='Odseparuj ścieżkę', command=lambda: self.separate_track(), font="Raleway", bg="#41075e", fg="white", height=1, width=15)
+        self.evaluation_value_label = Label(master, text="", font="Raleway")
 
         self.play_pause_btn.grid(row=0, column=0, sticky='n', pady=15)
         self.stop_btn.grid(row=0, column=1, sticky='n', pady=15)
         self.save_btn.grid(row=0, column=2, sticky='n', pady=15)
         self.sepatate_btn.grid(row=3, column=0, sticky='n')
+        self.evaluation_value_label.grid(row=3, column=1, sticky='n')
 
         self.init_radio_buttons()
         self.print_plot()
+        self.evaluate_melody()
 
     def print_plot(self):
         points = self.tracks_data[self.radio_var.get()]['line_notes']
@@ -62,11 +66,14 @@ class ResultWindow:
 
         # return messagebox.showinfo('PythonGuides', f'You Selected {output}.')
 
+    def evaluate_melody(self):
+        self.evaluation_value_label.config(text="Ocena: "+f"{evaluate_melody(self.midi_result, self.tracks_data[self.radio_var.get()], self.midi_base_input):.1f}")
+
     def init_radio_buttons(self):
         for i in range(len(self.tracks_data)):
             for msg in self.tracks_data[i]['line_melody_track']:
                 if hasattr(msg, 'name'):
-                    radio_btn = Radiobutton(self.master, text=msg.name, variable=self.radio_var, value=i, command=self.print_plot)
+                    radio_btn = Radiobutton(self.master, text=msg.name, variable=self.radio_var, value=i, command=lambda:[self.print_plot,self.evaluate_melody()])
                     radio_btn.grid(row=1, column=i, sticky='new')
                     break
 
@@ -86,7 +93,7 @@ class ResultWindow:
         self.is_paused = False
 
     def play_pause(self):
-        self.midi_file.save("data/result.mid")
+        self.midi_result.save("data/result.mid")
         self.refresh()
         if not self.is_playing:
             if self.is_paused:
@@ -106,13 +113,13 @@ class ResultWindow:
 
     def save_file(self):
         path = filedialog.asksaveasfile(mode='w', title="Zapisz plik", defaultextension=".mid", filetypes=(("Midi file", "*.mid"),("All Files", "*.*")))
-        self.midi_file.save(path.name)
+        self.midi_result.save(path.name)
 
     def separate_track(self):
-        new_midi = delete_other_tracks(self.midi_file, self.tracks_data[self.radio_var.get()]['track_number'])
+        new_midi = delete_other_tracks(self.midi_result, self.tracks_data[self.radio_var.get()]['track_number'])
         path = filedialog.asksaveasfile(mode='w', title="Zapisz odseparowaną ścieżkę", defaultextension=".mid", filetypes=(("Midi file", "*.mid"),("All Files", "*.*")))
         new_midi.save(path.name)
-        self.midi_file = new_midi
+        self.midi_result = new_midi
 
 
 class MainWindow:  # (Frame)
@@ -125,7 +132,7 @@ class MainWindow:  # (Frame)
         # master.resizable(False, False)
 
         # zmienne pomocnicze
-        self.midi_file_name = ''
+        self.midi_input = None
         self.paths_checkbox_dict = {}
         self.instruments = []
         self.keep_old_timing = BooleanVar()
@@ -162,7 +169,6 @@ class MainWindow:  # (Frame)
         self.rho = Entry(master, text='rho', validate="key", validatecommand=vcmdFloat)
         self.q = Entry(master, text='intensywność feromonu', validate="key", validatecommand=vcmdInt)
         self.start_btn = Button(master, text='Komponuj', command=lambda: self.start_ants_band(), font="Raleway", bg="#41075e", fg="white", height=1, width=15)
-        self.play_btn = Button(master, text='Graj', command=lambda: self.play(), font="Raleway", bg="#41075e", fg="white", height=1, width=15)
         self.exit_btn = Button(master, text='Zakończ', command=self.master.destroy, font="Raleway", bg="#41075e", fg="white", height=1, width=15)
 
         # położenie elementów layoutu
@@ -178,7 +184,6 @@ class MainWindow:  # (Frame)
         self.rho.grid(row=4, column=1)
         self.q.grid(row=4, column=2)
         self.start_btn.grid(row=5, column=0)
-        self.play_btn.grid(row=5, column=1)
         self.exit_btn.grid(row=5, column=2)
 
         self.ant_count_entry.insert(END, 10)
@@ -206,15 +211,13 @@ class MainWindow:  # (Frame)
         split_tip.bind_widget(self.split_entry, balloonmsg="Liczba części")
 
         self.start_btn["state"] = "disabled"
-        self.play_btn["state"] = "disabled"
 
     def open_file(self):
         file = askopenfile(parent=self.master, mode='rb', title="Wybierz plik midi", filetypes=[("Midi file", "*.mid")])
         if file:
             self.file_label.config(text=os.path.basename(file.name))
-            self.midi_file_name = file.name
-        mid = MidiFile(self.midi_file_name, clip=True)
-        self.init_instruments_checkboxes(mid)
+        self.midi_input = MidiFile(file.name, clip=True)
+        self.init_instruments_checkboxes(self.midi_input)
 
     def init_instruments_checkboxes(self, mid: MidiFile):
         self.instruments = []
@@ -227,7 +230,7 @@ class MainWindow:  # (Frame)
                     self.instruments.append(
                         {'name': msg.name, 'id': i})  # potrzebujemy nazwę instrumentu i index ścieżki
                     break
-        print(self.instruments)
+        # print(self.instruments)
         self.start_btn["state"] = "normal"
         for j in range(len(self.instruments)):  # utworzenie checkboxów
             var = IntVar()
@@ -240,21 +243,16 @@ class MainWindow:  # (Frame)
         for track_number, check in self.paths_checkbox_dict.items():
             if check.get() == 1:
                 selected_paths.append(track_number)
-        print(selected_paths)
         # ants_band = AntsBand(MidiFile('data/theRockingAnt.mid', clip=True), [2, 3])
-        ants_band = AntsBand(MidiFile(self.midi_file_name, clip=True), selected_paths, self.keep_old_timing.get(),
+        ants_band = AntsBand(self.midi_input, selected_paths, self.keep_old_timing.get(),
                              int(self.ant_count_entry.get()), int(self.generations.get()), float(self.alpha.get()),
                              float(self.beta.get()), float(self.rho.get()), int(self.q.get()))
         if self.split_tracks.get():
-            midi_file, tracks_data = ants_band.start_and_divide(int(self.split_entry.get()))
-            self.openNext(midi_file, tracks_data)
+            midi_result, tracks_data = ants_band.start_and_divide(int(self.split_entry.get()))
+            self.openNext(midi_result, tracks_data)
         else:
-            midi_file, tracks_data = ants_band.start()
-            self.openNext(midi_file, tracks_data)
-        self.play_btn["state"] = "normal"
-
-    def play(selfself):
-        prepare_and_play("data/result.mid")
+            midi_result, tracks_data = ants_band.start()
+            self.openNext(midi_result, tracks_data)
 
     def validateInt(self, action, index, value_if_allowed,
                        prior_value, text, validation_type, trigger_type, widget_name):
@@ -278,9 +276,9 @@ class MainWindow:  # (Frame)
         else:
             return False
 
-    def openNext(self, midi_file, tracks_data):
+    def openNext(self, midi_result, tracks_data):
         self.newWindow = Toplevel(self.master)
-        self.app = ResultWindow(self.newWindow, midi_file, tracks_data)
+        self.app = ResultWindow(self.newWindow, midi_result, tracks_data, self.midi_input)
 
 
 root = tix.Tk()

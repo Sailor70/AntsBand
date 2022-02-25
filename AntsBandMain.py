@@ -6,7 +6,7 @@ from mido import Message, MidiTrack
 from mido import MidiFile
 from aco import ACO, Graph
 from midiPlayer import prepare_and_play
-from AntsBandActions import plot
+from AntsBandActions import plot, evaluate_melody
 
 
 class AntsBand(object):
@@ -155,7 +155,7 @@ class AntsBand(object):
         return [line_path, line_notes_messages, line_notes]
 
     def start_and_divide(self, split: int):
-        print(self.midi_file.tracks[0][0])
+        # print(self.midi_file.tracks[0][0])
         try:
             self.clocks_per_click = self.midi_file.tracks[0][0].clocks_per_click
         except AttributeError:
@@ -172,8 +172,8 @@ class AntsBand(object):
                 phrase_paths.append(self.get_new_aco_melody_for_instrument(phrase_notes[i]))
                 order.append(i)
             random.shuffle(order)  # losowanie kolejności tablic - może mrówkami?
-            print(order)
-            print(phrase_paths)
+            # print(order)
+            # print(phrase_paths)
             line_path, line_notes_messages, line_notes = self.ordered_phrases_to_single_path(phrase_paths, phrases_notes_messages, phrase_notes, order)
             plot(line_notes, line_path)  # sumaryczny wykres dla złożonych w całość fraz
             # utworzenie ścieżki
@@ -190,4 +190,6 @@ class AntsBand(object):
 if __name__ == '__main__':
     antsBand = AntsBand(MidiFile('data/theRockingAntDrums.mid', clip=True), [2, 3], True, 10, 10, 1.0, 5, 0.1, 1)
     # antsBand.start()
-    antsBand.start_and_divide(4)
+    midi_result, tracks_data = antsBand.start_and_divide(4)
+    # midi_result, tracks_data = antsBand.start()
+    print(evaluate_melody(midi_result, tracks_data[0], MidiFile('data/theRockingAntDrums.mid', clip=True)))

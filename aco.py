@@ -64,6 +64,7 @@ class ACO(object):
                     best_solution = [] + ant.tabu
                 # update pheromone
                 ant._update_pheromone_delta()
+            print('best solution in gen #{}, cost: {}, path: {}'.format(gen, best_cost, best_solution))
             self._update_pheromone(graph, ants)
             # print('generation #{}, best cost: {}, path: {}'.format(gen, best_cost, best_solution))
         return best_solution, best_cost
