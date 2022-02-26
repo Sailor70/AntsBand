@@ -130,15 +130,21 @@ class MainWindow:
 
     def start_ants_band(self):
         selected_paths = []
+        not_selected_paths = []
         for track_number, check in self.paths_checkbox_dict.items():
             if check.get() == 1:
                 selected_paths.append(track_number)
+            else:
+                not_selected_paths.append(track_number)
         # ants_band = AntsBand(MidiFile('data/theRockingAnt.mid', clip=True), [2, 3])
         ants_band = AntsBand(self.midi_input, selected_paths, self.keep_old_timing.get(), self.track_length_entry.get(),
                              int(self.ant_count_entry.get()), int(self.generations.get()), float(self.alpha.get()),
                              float(self.beta.get()), float(self.rho.get()), int(self.q.get()))
         if self.split_tracks.get():
-            midi_result, tracks_data = ants_band.start_and_divide(int(self.split_entry.get()))
+            if int(self.track_length_entry.get()) > 1:
+                midi_result, tracks_data = ants_band.start_divide_and_extend(int(self.split_entry.get()), int(self.track_length_entry.get()), not_selected_paths)
+            else:
+                midi_result, tracks_data = ants_band.start_and_divide(int(self.split_entry.get()))
             self.openNext(midi_result, tracks_data)
         else:
             midi_result, tracks_data = ants_band.start()

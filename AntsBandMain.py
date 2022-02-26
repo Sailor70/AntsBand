@@ -181,10 +181,83 @@ class AntsBand(object):
         # self.midi_file.save("data/result.mid")
         # prepare_and_play("data/result.mid")
 
+    def build_new_melody_track_extend(self, melody_track: MidiTrack, path: list, notes_messages: list):
+        path_counter = 0
+        result_msg_sequence = []
+        for i, msg in enumerate(notes_messages): # old message to msg
+            old_on_msg = msg[0]
+            old_off_msg = msg[1]
+            if path_counter < len(path):
+                new_on_msg = notes_messages[path[path_counter]][0]  # szukamy nowego messedża
+                new_off_msg = notes_messages[path[path_counter]][1]  # szukamy nowego messedża
+                if self.keep_old_timing:
+                    result_msg_sequence.append(Message('note_on', channel=old_on_msg.channel, note=new_on_msg.note, velocity=new_on_msg.velocity, time=old_on_msg.time))
+                    result_msg_sequence.append(Message('note_off', channel=old_off_msg.channel, note=new_off_msg.note, velocity=new_off_msg.velocity, time=old_off_msg.time))
+                else:
+                    result_msg_sequence.append(Message('note_on', channel=old_on_msg.channel, note=new_on_msg.note, velocity=new_on_msg.velocity, time=self.quantizeRound(new_on_msg.time)))
+                    result_msg_sequence.append(Message('note_on', channel=old_off_msg.channel, note=new_off_msg.note, velocity=new_off_msg.velocity, time=self.quantizeRound(new_off_msg.time)))
+                path_counter += 1
+
+        notes_messages_detected = False
+        for i, msg in enumerate(melody_track):  # kopiowanie starych settings messegów do nowego tracka
+            if msg.type != 'note_on' and msg.type != 'note_off' and not notes_messages_detected:
+                result_msg_sequence.insert(i, msg)
+            elif msg.type != 'note_on' and msg.type != 'note_off' and notes_messages_detected:
+                result_msg_sequence.append(msg)
+            elif msg.type == 'note_on':
+                notes_messages_detected = True
+        print(melody_track)
+        print(MidiTrack(result_msg_sequence))
+        return MidiTrack(result_msg_sequence)
+
+    def extend_unedited_paths(self, not_selected_paths: [int]):
+        print("not_selected_paths", not_selected_paths)
+        for i in not_selected_paths:
+            notes_end_index = 0
+            notes_messages = []
+            for j, msg in enumerate(self.midi_file.tracks[i]):
+                if msg.type == 'note_on' or msg.type == 'note_off':
+                    notes_messages.append(msg)
+                if msg.type != 'note_on' and msg.type != 'note_off' and len(notes_messages) > 0:
+                    notes_end_index = j
+                    break
+            self.midi_file.tracks[i][notes_end_index:notes_end_index] = notes_messages
+
+
+    def start_divide_and_extend(self, split: int, track_length: int, not_selected_paths: [int]):  # track_length określa liczbę fraz w finalnym utworze
+        try:
+            self.clocks_per_click = self.midi_file.tracks[0][0].clocks_per_click
+        except AttributeError:
+            print("Nie masz w pliku clocks_per_click!")
+        tracks_data = []
+        for track_number in self.tracks_numbers:
+            line_notes, line_notes_messages = self.read_notes_from_track(self.midi_file.tracks[track_number])
+            phrase_notes = np.array_split(line_notes, split)
+            phrases_notes_messages = np.array_split(line_notes_messages, split)
+            phrase_paths = []
+            order = []
+            for l in range(track_length):
+                for i in range(split):
+                    phrase_paths.append(self.get_new_aco_melody_for_instrument(phrase_notes[i]))
+                    order.append(i)
+            random.shuffle(order)  # losowanie kolejności tablic - może mrówkami?
+            line_path, line_notes_messages, line_notes = self.ordered_phrases_to_single_path(phrase_paths, phrases_notes_messages, phrase_notes, order)
+            plot(line_notes, line_path)  # sumaryczny wykres dla złożonych w całość fraz
+            # utworzenie ścieżki
+            line_melody_track = self.build_new_melody_track_extend(self.midi_file.tracks[track_number], line_path, line_notes_messages)
+            # # utworzenie pliku wynikowego przez podmianę ścieżek
+            self.midi_file.tracks[track_number] = line_melody_track
+            tracks_data.append({'track_number': track_number, 'line_path': line_path, 'line_notes': line_notes, 'line_melody_track': line_melody_track})
+        self.extend_unedited_paths(not_selected_paths)
+        self.midi_file.save("data/result.mid")
+        # prepare_and_play("data/result.mid")
+        return [self.midi_file, tracks_data]
+
 
 if __name__ == '__main__':
     antsBand = AntsBand(MidiFile('data/theRockingAntDrums.mid', clip=True), [2, 3], True, 1, 10, 10, 1.0, 5, 0.1, 1)
     # antsBand.start()
-    midi_result, tracks_data = antsBand.start_and_divide(4)
+    # midi_result, tracks_data = antsBand.start_and_divide(4)
+    midi_result, tracks_data = antsBand.start_divide_and_extend(4, 2, [4])
     # midi_result, tracks_data = antsBand.start()
     print(evaluate_melody(midi_result, tracks_data[0], MidiFile('data/theRockingAntDrums.mid', clip=True)))
