@@ -38,11 +38,11 @@ def evaluate_melody(midi_result: MidiFile, tracks_data, midi_input: MidiFile):
     eval_notes_time = [0] * len(tracks_data['line_path'])
     time_counter = 0
     notes_counter = 0
-    print(tracks_data['line_melody_track'])
+    # print(tracks_data['line_melody_track'])
     for i, msg in enumerate(tracks_data['line_melody_track']):
         if hasattr(msg, 'time'):  # 'note_on' or msg.type == 'note_off'
             time_counter += msg.time
-            print(msg.time)
+            # print(msg.time)
             if msg.type == 'note_on':
                 if time_counter % clocks_per_click == 0: # jeśli mieści się w siatce nut (trafia w szesnastkę) - ale może lepiej w ćwierćnutę i na raz w takcie
                     eval_notes_time[notes_counter] += 1

@@ -143,16 +143,10 @@ class AntsBand(object):
         line_notes_messages = []
         line_notes = []  # potrzebne do sumarycznego wykresu
         for i in order:
-            line_notes_messages.append(phrases_notes_messages[i])
-            # line_notes_messages.extend(phrases_notes_messages[i])  # TODO sprawdzić to i usunąć podwóje fory
-            line_notes.append(phrase_notes[i])
-            # line_notes.extend(phrase_notes[i])
+            line_notes_messages.extend(phrases_notes_messages[i])
+            line_notes.extend(phrase_notes[i])
             phrase_paths[i] = [x+i*len(phrase_paths[i]) for x in phrase_paths[i]]  # przemnożenie indeksów
-            line_path.append(phrase_paths[i])
-            # line_path.extend(phrase_paths[i])
-        line_path = [item for sublist in line_path for item in sublist]  # redukcja wymiaru tablicy z 3 na 2 wymiary
-        line_notes_messages = [item for sublist in line_notes_messages for item in sublist]
-        line_notes = [item for sublist in line_notes for item in sublist]
+            line_path.extend(phrase_paths[i])
         return [line_path, line_notes_messages, line_notes]
 
     def start_and_divide(self, split: int):
@@ -189,7 +183,7 @@ class AntsBand(object):
 
 
 if __name__ == '__main__':
-    antsBand = AntsBand(MidiFile('data/theRockingAntDrums.mid', clip=True), [2, 3], True, 10, 10, 1.0, 5, 0.1, 1)
+    antsBand = AntsBand(MidiFile('data/theRockingAntDrums.mid', clip=True), [2, 3], True, 1, 10, 10, 1.0, 5, 0.1, 1)
     # antsBand.start()
     midi_result, tracks_data = antsBand.start_and_divide(4)
     # midi_result, tracks_data = antsBand.start()

@@ -66,7 +66,7 @@ class ResultWindow:
         for i in range(len(self.tracks_data)):
             for msg in self.tracks_data[i]['line_melody_track']:
                 if hasattr(msg, 'name'):
-                    radio_btn = Radiobutton(self.master, text=msg.name, variable=self.radio_var, value=i, command=lambda:[self.print_plot,self.evaluate_melody()])
+                    radio_btn = Radiobutton(self.master, text=msg.name, variable=self.radio_var, value=i, command=lambda:[self.print_plot(), self.evaluate_melody()])
                     radio_btn.grid(row=1, column=i, sticky='new')
                     break
 
