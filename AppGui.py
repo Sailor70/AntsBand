@@ -14,7 +14,7 @@ class MainWindow:
     def __init__(self, master):
         self.master = master
         master.title("AntsBand 1.0")
-        master.geometry("600x300")
+        master.geometry("600x350")
         # master.resizable(False, False)
 
         # zmienne pomocnicze
@@ -25,9 +25,10 @@ class MainWindow:
         self.keep_old_timing.set(True)
         self.split_tracks = BooleanVar()
         self.split_tracks.set(False)
+        self.algorithm_var = IntVar()
 
-        canvas = Canvas(master, width=600, height=300)
-        canvas.grid(columnspan=3, rowspan=7)
+        canvas = Canvas(master, width=600, height=350)
+        canvas.grid(columnspan=3, rowspan=9)
 
         """
         :param ant_count: liczba mrówek
@@ -48,13 +49,18 @@ class MainWindow:
         self.track_length_entry = Entry(master, text='Długość utworu', validate="key", validatecommand=vcmdInt)
         self.keep_timing_checkbox = Checkbutton(master, text='Zachowaj timing', variable=self.keep_old_timing)
         self.split_tracks_checkbox = Checkbutton(master, text='Podziel ścieżki', variable=self.split_tracks)
+        self.algorithm_label = Label(master, text="Algorytm: ", font="Raleway")
         self.split_entry = Entry(master, text='Liczba części', validate="key", validatecommand=vcmdInt)
+        self.as_radio_btn = Radiobutton(self.master, text='AS', variable=self.algorithm_var, value=0, command=lambda: self.algorithm_change())
+        self.acs_radio_btn = Radiobutton(self.master, text='ACS', variable=self.algorithm_var, value=1, command=lambda: self.algorithm_change())
         self.ant_count_entry = Entry(master, text='liczba mrówek', validate="key", validatecommand=vcmdInt)
         self.generations = Entry(master, text='liczba iteracji', validate="key", validatecommand=vcmdInt)
         self.alpha = Entry(master, text='alpha', validate="key", validatecommand=vcmdFloat)
         self.beta = Entry(master, text='beta', validate="key", validatecommand=vcmdFloat)
         self.rho = Entry(master, text='rho', validate="key", validatecommand=vcmdFloat)
         self.q = Entry(master, text='intensywność feromonu', validate="key", validatecommand=vcmdInt)
+        self.phi = Entry(master, text='współczynnik parowania', validate="key", validatecommand=vcmdFloat)
+        self.q_zero = Entry(master, text='współczynnik chciwości', validate="key", validatecommand=vcmdFloat)
         self.start_btn = Button(master, text='Komponuj', command=lambda: self.start_ants_band(), font="Raleway", bg="#41075e", fg="white", height=1, width=15)
         self.exit_btn = Button(master, text='Zakończ', command=self.master.destroy, font="Raleway", bg="#41075e", fg="white", height=1, width=15)
 
@@ -66,14 +72,19 @@ class MainWindow:
         self.split_tracks_checkbox.grid(row=3, column=0)
         self.split_entry.grid(row=3, column=1)
         self.keep_timing_checkbox.grid(row=3, column=2)
-        self.ant_count_entry.grid(row=4, column=0)
-        self.generations.grid(row=4, column=1)
-        self.alpha.grid(row=4, column=2)
-        self.beta.grid(row=5, column=0)
-        self.rho.grid(row=5, column=1)
-        self.q.grid(row=5, column=2)
-        self.start_btn.grid(row=6, column=0)
-        self.exit_btn.grid(row=6, column=2)
+        self.algorithm_label.grid(row=4, column=0)
+        self.as_radio_btn.grid(row=4, column=1, sticky='ew')
+        self.acs_radio_btn.grid(row=4, column=2, sticky='ew')
+        self.ant_count_entry.grid(row=5, column=0)
+        self.generations.grid(row=5, column=1)
+        self.alpha.grid(row=5, column=2)
+        self.beta.grid(row=6, column=0)
+        self.rho.grid(row=6, column=1)
+        self.q.grid(row=6, column=2)
+        self.phi.grid(row=7, column=0)
+        self.q_zero.grid(row=7, column=1)
+        self.start_btn.grid(row=8, column=0)
+        self.exit_btn.grid(row=8, column=2)
 
         self.ant_count_entry.insert(END, 10)
         self.generations.insert(END, 10)
@@ -83,6 +94,8 @@ class MainWindow:
         self.q.insert(END, 1)
         self.split_entry.insert(END, 4)
         self.track_length_entry.insert(END, 1)
+        self.phi.insert(END, 0.1)
+        self.q_zero.insert(END, 0.9)
 
         ant_count_entry_tip = Balloon(master)
         generations_tip = Balloon(master)
@@ -101,6 +114,8 @@ class MainWindow:
         split_tip.bind_widget(self.split_entry, balloonmsg="Liczba części")
 
         self.start_btn["state"] = "disabled"
+        self.phi["state"] = "disabled"
+        self.q_zero["state"] = "disabled"
 
     def open_file(self):
         file = askopenfile(parent=self.master, mode='rb', title="Wybierz plik midi", filetypes=[("Midi file", "*.mid")])
@@ -128,6 +143,15 @@ class MainWindow:
             self.paths_checkbox_dict[self.instruments[j]['id']] = var
             c.grid(row=1, column=j)
 
+    def algorithm_change(self):
+        print(str(self.algorithm_var.get()))
+        if self.algorithm_var.get() == 0:
+            self.phi["state"] = "disabled"
+            self.q_zero["state"] = "disabled"
+        else:
+            self.phi["state"] = "normal"
+            self.q_zero["state"] = "normal"
+
     def start_ants_band(self):
         selected_paths = []
         not_selected_paths = []
@@ -137,9 +161,9 @@ class MainWindow:
             else:
                 not_selected_paths.append(track_number)
         # ants_band = AntsBand(MidiFile('data/theRockingAnt.mid', clip=True), [2, 3])
-        ants_band = AntsBand(self.midi_input, selected_paths, self.keep_old_timing.get(), self.track_length_entry.get(),
+        ants_band = AntsBand(self.midi_input, selected_paths, self.keep_old_timing.get(), self.track_length_entry.get(), self.algorithm_var.get(),
                              int(self.ant_count_entry.get()), int(self.generations.get()), float(self.alpha.get()),
-                             float(self.beta.get()), float(self.rho.get()), int(self.q.get()))
+                             float(self.beta.get()), float(self.rho.get()), int(self.q.get()), float(self.phi.get()), float(self.q_zero.get()))
         if self.split_tracks.get():
             if int(self.track_length_entry.get()) > 1:
                 midi_result, tracks_data = ants_band.start_divide_and_extend(int(self.split_entry.get()), int(self.track_length_entry.get()), not_selected_paths)

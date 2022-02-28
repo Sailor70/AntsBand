@@ -48,14 +48,14 @@ class ResultWindow:
         for i in range(len(points)):
             x.append(i)
             y.append(points[path[i]])
-        figure3 = plt.Figure(figsize=(5, 4), dpi=100)
-        ax3 = figure3.add_subplot(111)
-        ax3.scatter(x, y, color='g')
-        scatter3 = FigureCanvasTkAgg(figure3, self.master)
-        scatter3.get_tk_widget().grid(row=2, column=0, columnspan=3, sticky="enw")
-        ax3.legend(['Wartości kolejnych nut'])
-        ax3.set_xlabel('Czas')
-        ax3.set_title('Linia melodyczna instrumentu')
+        figure = plt.Figure(figsize=(5, 4), dpi=100)
+        ax = figure.add_subplot(111)
+        ax.scatter(x, y, color='g')
+        scatter = FigureCanvasTkAgg(figure, self.master)
+        scatter.get_tk_widget().grid(row=2, column=0, columnspan=3, sticky="enw")
+        ax.legend(['Wartości kolejnych nut'])
+        ax.set_xlabel('Czas')
+        ax.set_title('Linia melodyczna instrumentu')
 
         # return messagebox.showinfo('PythonGuides', f'You Selected {output}.')
 

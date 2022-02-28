@@ -5,24 +5,28 @@ import numpy as np
 from mido import Message, MidiTrack
 from mido import MidiFile
 from aco import ACO, Graph
+from acs import ACS, GraphACS
 from midiPlayer import prepare_and_play
 from AntsBandActions import plot, evaluate_melody
 
 
 class AntsBand(object):
-    def __init__(self, midi_file: MidiFile, tracks_numbers: [int], keep_old_timing: bool, result_track_length: int,
-                 ant_count: int, generations: int, alpha: float, beta: float, rho: float, q: int):
+    def __init__(self, midi_file: MidiFile, tracks_numbers: [int], keep_old_timing: bool, result_track_length: int, algorithm_type: int,
+                 ant_count: int, generations: int, alpha: float, beta: float, rho: float, q: int, phi: float, q_zero: float):
         self.midi_file = midi_file  # strings podawać i tworzyć objekt
         self.tracks_numbers = tracks_numbers  # tracksNumbers  # tablica + pętle do tego
         self.available_distances = [0.1, 0.5, 1, 5, 10, 100]
         self.keep_old_timing = keep_old_timing
-        self.result_track_length = result_track_length  # TODO dokończyć
+        self.result_track_length = result_track_length
+        self.algorithm_type = algorithm_type
         self.Q = q
         self.rho = rho
         self.beta = beta
         self.alpha = alpha
         self.ant_count = ant_count
         self.generations = generations
+        self.phi = phi
+        self.q_zero = q_zero
         self.clocks_per_click = 24
 
     def distance(self, a: int, b: int):
@@ -65,7 +69,7 @@ class AntsBand(object):
                     # dla tego dźwięku (zawsze para note_on i note_off)
         return [notes, notes_messages]
 
-    def get_new_aco_melody_for_instrument(self, notes: list):
+    def get_new_aco_melody_for_instrument(self, notes: list, acs_alg: bool = True):
         cost_matrix = []
         rank = len(notes)
         for i in range(rank):
@@ -73,16 +77,23 @@ class AntsBand(object):
             for j in range(rank):
                 row.append(self.distance(notes[i], notes[j]))
             cost_matrix.append(row)
-        aco = ACO(self.ant_count, self.generations, self.alpha, self.beta, self.rho, self.Q, 2)
-        # aco = ACO(10, 10, 1.0, 5, 0.1, 1, 2)
-        # ACO(1, 1, 5.0, 0, 0.01, 1, 2) - ustawienie do odtworzenia orginalnego
-        # utworu ( ale tylko gdy mrówka zaczenie w dobrym miejscu - w nucie początkowej ? - to zagra tak samo)
-        # aco = ACO(10, 100, 1.0, 8.0, 0.5, 10, 2)
-        graph = Graph(cost_matrix, rank)
-        path, cost = aco.solve(graph)
-        print('cost: {}, path: {}'.format(cost, path))
+        if self.algorithm_type == 0:
+            aco = ACO(self.ant_count, self.generations, self.alpha, self.beta, self.rho, self.Q, 2)
+            # aco = ACO(10, 10, 1.0, 5, 0.1, 1, 2)
+            # ACO(1, 1, 5.0, 0, 0.01, 1, 2) - ustawienie do odtworzenia orginalnego
+            # utworu ( ale tylko gdy mrówka zaczenie w dobrym miejscu - w nucie początkowej ? - to zagra tak samo)
+            # aco = ACO(10, 100, 1.0, 8.0, 0.5, 10, 2)
+            graph = Graph(cost_matrix, rank)
+            path, cost = aco.solve(graph)
+            print('cost: {}, path: {}'.format(cost, path))
+        else:
+            acs = ACS(self.ant_count, self.generations, self.alpha, self.beta, self.rho, phi=self.phi, q_zero=self.q_zero)  # self.phi, self.q_zero
+            graph = GraphACS(cost_matrix, rank)
+            path, cost = acs.solve(graph)
+            print('cost2: {}, path2: {}'.format(cost, path))
         # plot(notes, path)  # wykres
         return path
+
 
     def build_new_melody_track(self, melody_track: MidiTrack, path: list, notes_messages: list):
         path_counter = 0
@@ -184,12 +195,12 @@ class AntsBand(object):
     def build_new_melody_track_extend(self, melody_track: MidiTrack, path: list, notes_messages: list):
         path_counter = 0
         result_msg_sequence = []
-        for i, msg in enumerate(notes_messages): # old message to msg
+        for i, msg in enumerate(notes_messages):  # old message to msg
             old_on_msg = msg[0]
             old_off_msg = msg[1]
             if path_counter < len(path):
-                new_on_msg = notes_messages[path[path_counter]][0]  # szukamy nowego messedża
-                new_off_msg = notes_messages[path[path_counter]][1]  # szukamy nowego messedża
+                new_on_msg = notes_messages[path[path_counter]][0]
+                new_off_msg = notes_messages[path[path_counter]][1]
                 if self.keep_old_timing:
                     result_msg_sequence.append(Message('note_on', channel=old_on_msg.channel, note=new_on_msg.note, velocity=new_on_msg.velocity, time=old_on_msg.time))
                     result_msg_sequence.append(Message('note_off', channel=old_off_msg.channel, note=new_off_msg.note, velocity=new_off_msg.velocity, time=old_off_msg.time))
@@ -206,8 +217,6 @@ class AntsBand(object):
                 result_msg_sequence.append(msg)
             elif msg.type == 'note_on':
                 notes_messages_detected = True
-        print(melody_track)
-        print(MidiTrack(result_msg_sequence))
         return MidiTrack(result_msg_sequence)
 
     def extend_unedited_paths(self, not_selected_paths: [int]):
@@ -250,12 +259,12 @@ class AntsBand(object):
             tracks_data.append({'track_number': track_number, 'line_path': line_path, 'line_notes': line_notes, 'line_melody_track': line_melody_track})
         self.extend_unedited_paths(not_selected_paths)
         self.midi_file.save("data/result.mid")
-        # prepare_and_play("data/result.mid")
+        prepare_and_play("data/result.mid")
         return [self.midi_file, tracks_data]
 
 
 if __name__ == '__main__':
-    antsBand = AntsBand(MidiFile('data/theRockingAntDrums.mid', clip=True), [2, 3], True, 1, 10, 10, 1.0, 5, 0.1, 1)
+    antsBand = AntsBand(MidiFile('data/theRockingAntDrums.mid', clip=True), [2, 3], True, 1, 1, 10, 10, 1.0, 5, 0.1, 1, 0.1, 0.9)
     # antsBand.start()
     # midi_result, tracks_data = antsBand.start_and_divide(4)
     midi_result, tracks_data = antsBand.start_divide_and_extend(4, 2, [4])
