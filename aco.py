@@ -60,7 +60,7 @@ class ACO(object):
                 for i in range(graph.rank - 1):
                     # for i in range(int((graph.rank - 1)/self.divider)):  # przejście po wszystkich węzłach
                     ant._select_next()
-                # ant.total_cost += graph.matrix[ant.tabu[-1]][ant.tabu[0]]  # doliczenie przejścia z ostatniego węzła do początkowego - cykl hamiltona - czy to nam potrzebne? - chyba nie
+                ant.total_cost += graph.matrix[ant.tabu[-1]][ant.tabu[0]]  # doliczenie przejścia z ostatniego węzła do początkowego - cykl hamiltona - czy to nam potrzebne? - chyba nie
                 if ant.total_cost < best_cost:
                     best_cost = ant.total_cost
                     best_solution = [] + ant.tabu

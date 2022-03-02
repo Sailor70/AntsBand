@@ -132,6 +132,7 @@ class AntsBand(object):
             self.clocks_per_click = self.midi_file.tracks[0][0].clocks_per_click
         except AttributeError:
             print("Nie masz w pliku clocks_per_click!")
+            raise
         tracks_data = []
         for track_number in self.tracks_numbers:
             # odczyt nut i eventów midi ze ścieżek
@@ -166,6 +167,7 @@ class AntsBand(object):
             self.clocks_per_click = self.midi_file.tracks[0][0].clocks_per_click
         except AttributeError:
             print("Nie masz w pliku clocks_per_click!")
+            raise
         tracks_data = []
         for track_number in self.tracks_numbers:
             # odczyt nut i eventów midi ze ścieżek
@@ -181,16 +183,16 @@ class AntsBand(object):
             # print(order)
             # print(phrase_paths)
             line_path, line_notes_messages, line_notes = self.ordered_phrases_to_single_path(phrase_paths, phrases_notes_messages, phrase_notes, order)
-            # plot(line_notes, line_path)  # sumaryczny wykres dla złożonych w całość fraz
+            plot(line_notes, line_path)  # sumaryczny wykres dla złożonych w całość fraz
             # utworzenie ścieżki
             line_melody_track = self.build_new_melody_track(self.midi_file.tracks[track_number], line_path, line_notes_messages)
             # # utworzenie pliku wynikowego przez podmianę ścieżek
             self.midi_file.tracks[track_number] = line_melody_track
             tracks_data.append({'track_number': track_number, 'line_path': line_path, 'line_notes': line_notes, 'line_melody_track': line_melody_track})
 
+        self.midi_file.save("data/result.mid")
+        prepare_and_play("data/result.mid")
         return [self.midi_file, tracks_data]
-        # self.midi_file.save("data/result.mid")
-        # prepare_and_play("data/result.mid")
 
     def build_new_melody_track_extend(self, melody_track: MidiTrack, path: list, notes_messages: list):
         path_counter = 0
@@ -238,6 +240,7 @@ class AntsBand(object):
             self.clocks_per_click = self.midi_file.tracks[0][0].clocks_per_click
         except AttributeError:
             print("Nie masz w pliku clocks_per_click!")
+            raise
         tracks_data = []
         for track_number in self.tracks_numbers:
             line_notes, line_notes_messages = self.read_notes_from_track(self.midi_file.tracks[track_number])
@@ -266,7 +269,7 @@ class AntsBand(object):
 if __name__ == '__main__':
     antsBand = AntsBand(MidiFile('data/theRockingAntDrums.mid', clip=True), [2, 3], True, 1, 0, 10, 10, 1.0, 5, 0.1, 1, 0.1, 0.9)
     # antsBand.start()
-    # midi_result, tracks_data = antsBand.start_and_divide(4)
+    midi_result, tracks_data = antsBand.start_and_divide(4)
     # midi_result, tracks_data = antsBand.start_divide_and_extend(4, 2, [4])
-    midi_result, tracks_data = antsBand.start()
-    # print(evaluate_melody(midi_result, tracks_data[0], MidiFile('data/theRockingAntDrums.mid', clip=True)))
+    # midi_result, tracks_data = antsBand.start()
+    print(evaluate_melody(midi_result, tracks_data[0], MidiFile('data/theRockingAntDrums.mid', clip=True)))
