@@ -145,9 +145,9 @@ class AntsBand(object):
             self.midi_file.tracks[track_number] = line_melody_track
             tracks_data.append({'track_number': track_number, 'line_path': line_path, 'line_notes': line_notes, 'line_melody_track': line_melody_track})
 
-        return [self.midi_file, tracks_data]
         # self.midi_file.save("data/result.mid")
         # prepare_and_play("data/result.mid")
+        return [self.midi_file, tracks_data]
 
     def ordered_phrases_to_single_path(self, phrase_paths: list, phrases_notes_messages: list, phrase_notes: list, order: [int]):
         line_path = []
@@ -181,7 +181,7 @@ class AntsBand(object):
             # print(order)
             # print(phrase_paths)
             line_path, line_notes_messages, line_notes = self.ordered_phrases_to_single_path(phrase_paths, phrases_notes_messages, phrase_notes, order)
-            plot(line_notes, line_path)  # sumaryczny wykres dla złożonych w całość fraz
+            # plot(line_notes, line_path)  # sumaryczny wykres dla złożonych w całość fraz
             # utworzenie ścieżki
             line_melody_track = self.build_new_melody_track(self.midi_file.tracks[track_number], line_path, line_notes_messages)
             # # utworzenie pliku wynikowego przez podmianę ścieżek
@@ -208,7 +208,7 @@ class AntsBand(object):
                     result_msg_sequence.append(Message('note_on', channel=old_on_msg.channel, note=new_on_msg.note, velocity=new_on_msg.velocity, time=self.quantizeRound(new_on_msg.time)))
                     result_msg_sequence.append(Message('note_on', channel=old_off_msg.channel, note=new_off_msg.note, velocity=new_off_msg.velocity, time=self.quantizeRound(new_off_msg.time)))
                 path_counter += 1
-
+        # TODO przy podwajaniu długości tracka trzeba doliczyć pomiędzy czas z końcowych meta messegów
         notes_messages_detected = False
         for i, msg in enumerate(melody_track):  # kopiowanie starych settings messegów do nowego tracka
             if msg.type != 'note_on' and msg.type != 'note_off' and not notes_messages_detected:
@@ -259,14 +259,14 @@ class AntsBand(object):
             tracks_data.append({'track_number': track_number, 'line_path': line_path, 'line_notes': line_notes, 'line_melody_track': line_melody_track})
         self.extend_unedited_paths(not_selected_paths)
         self.midi_file.save("data/result.mid")
-        prepare_and_play("data/result.mid")
+        # prepare_and_play("data/result.mid")
         return [self.midi_file, tracks_data]
 
 
 if __name__ == '__main__':
-    antsBand = AntsBand(MidiFile('data/theRockingAntDrums.mid', clip=True), [2, 3], True, 1, 1, 10, 10, 1.0, 5, 0.1, 1, 0.1, 0.9)
+    antsBand = AntsBand(MidiFile('data/theRockingAntDrums.mid', clip=True), [2, 3], True, 1, 0, 10, 10, 1.0, 5, 0.1, 1, 0.1, 0.9)
     # antsBand.start()
     # midi_result, tracks_data = antsBand.start_and_divide(4)
-    midi_result, tracks_data = antsBand.start_divide_and_extend(4, 2, [4])
-    # midi_result, tracks_data = antsBand.start()
-    print(evaluate_melody(midi_result, tracks_data[0], MidiFile('data/theRockingAntDrums.mid', clip=True)))
+    # midi_result, tracks_data = antsBand.start_divide_and_extend(4, 2, [4])
+    midi_result, tracks_data = antsBand.start()
+    # print(evaluate_melody(midi_result, tracks_data[0], MidiFile('data/theRockingAntDrums.mid', clip=True)))

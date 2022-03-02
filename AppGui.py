@@ -3,6 +3,7 @@ from tkinter import tix
 from tkinter.filedialog import askopenfile
 import os
 from tkinter.tix import Balloon
+from tkinter import messagebox
 
 from AntsBandActions import *
 from ResultWindow import ResultWindow
@@ -164,15 +165,19 @@ class MainWindow:
         ants_band = AntsBand(self.midi_input, selected_paths, self.keep_old_timing.get(), self.track_length_entry.get(), self.algorithm_var.get(),
                              int(self.ant_count_entry.get()), int(self.generations.get()), float(self.alpha.get()),
                              float(self.beta.get()), float(self.rho.get()), int(self.q.get()), float(self.phi.get()), float(self.q_zero.get()))
-        if self.split_tracks.get():
-            if int(self.track_length_entry.get()) > 1:
-                midi_result, tracks_data = ants_band.start_divide_and_extend(int(self.split_entry.get()), int(self.track_length_entry.get()), not_selected_paths)
+        try:
+            if self.split_tracks.get():
+                if int(self.track_length_entry.get()) > 1:
+                        midi_result, tracks_data = ants_band.start_divide_and_extend(int(self.split_entry.get()), int(self.track_length_entry.get()), not_selected_paths)
+                else:
+                    midi_result, tracks_data = ants_band.start_and_divide(int(self.split_entry.get()))
+                self.openNext(midi_result, tracks_data)
             else:
-                midi_result, tracks_data = ants_band.start_and_divide(int(self.split_entry.get()))
-            self.openNext(midi_result, tracks_data)
-        else:
-            midi_result, tracks_data = ants_band.start()
-            self.openNext(midi_result, tracks_data)
+                midi_result, tracks_data = ants_band.start()
+                self.openNext(midi_result, tracks_data)
+        except Exception as e:
+            messagebox.showerror('Błąd', 'Wystąpił błąd: ' + str(e))
+            raise  # pluje błędem do konsoli
 
     def validateInt(self, action, index, value_if_allowed,
                        prior_value, text, validation_type, trigger_type, widget_name):

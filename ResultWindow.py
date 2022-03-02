@@ -1,8 +1,10 @@
+import random
 from tkinter import *
 from tkinter import filedialog
 import threading
-
+from pygame import mixer
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from tkinter import messagebox
 
 from AntsBandActions import *
 from midiPlayer import *
@@ -13,6 +15,7 @@ class ResultWindow:
         self.master = master
         master.title("Uzyskany wynik")
         master.geometry("500x600")
+        mixer.init()  # initializing the mixer
 
         self.midi_result = midi_result
         self.tracks_data = tracks_data
@@ -20,6 +23,7 @@ class ResultWindow:
         self.is_playing = False
         self.is_paused = False
         self.radio_var = IntVar()
+        self.file_name = "result" + str(random.randint(0, 10000)) + ".mid"
 
         canvas = Canvas(master, width=500, height=600)
         canvas.grid(columnspan=3, rowspan=4)
@@ -60,7 +64,11 @@ class ResultWindow:
         # return messagebox.showinfo('PythonGuides', f'You Selected {output}.')
 
     def evaluate_melody(self):
-        self.evaluation_value_label.config(text="Ocena: "+f"{evaluate_melody(self.midi_result, self.tracks_data[self.radio_var.get()], self.midi_base_input):.1f}")
+        try:
+            self.evaluation_value_label.config(text="Ocena: "+f"{evaluate_melody(self.midi_result, self.tracks_data[self.radio_var.get()], self.midi_base_input):.1f}")
+        except Exception as e:
+            messagebox.showerror('Błąd', 'Wystąpił błąd: ' + str(e))
+            raise  # pluje błędem do konsoli
 
     def init_radio_buttons(self):
         for i in range(len(self.tracks_data)):
@@ -73,33 +81,39 @@ class ResultWindow:
     def refresh(self):
         self.master.update()
         self.master.after(1000, self.refresh)
-        if check_if_playing():
+        # if check_if_playing():
+        if mixer.music.get_busy():
             self.is_playing = True
         else:
             self.play_pause_btn.config(text="Graj")
             self.is_playing = False
 
     def stop_playing(self):
-        stop_music()
+        # stop_music()
+        mixer.music.stop()
         self.play_pause_btn.config(text="Graj")
         self.is_playing = False
         self.is_paused = False
 
     def play_pause(self):
-        self.midi_result.save("data/result.mid")
+        self.midi_result.save("data/" + self.file_name)
         self.refresh()
         if not self.is_playing:
             if self.is_paused:
-                unpause_music()
+                # unpause_music()
+                mixer.music.unpause()
                 self.play_pause_btn.config(text="Pauza")
                 self.is_paused = False
             else:
                 self.play_pause_btn.config(text="Pauza")
-                threading.Thread(target=prepare_and_play("data/result.mid")).start()
+                mixer.music.load("data/" + self.file_name)
+                mixer.music.play()
+                # threading.Thread(target=prepare_and_play("data/" + self.file_name)).start()
                 self.is_playing = True
         else:
             # pause_music()
-            threading.Thread(target=pause_music()).start()
+            # threading.Thread(target=pause_music()).start()
+            mixer.music.pause()
             self.play_pause_btn.config(text="Graj")
             self.is_playing = False
             self.is_paused = True

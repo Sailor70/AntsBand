@@ -37,6 +37,7 @@ class ACO(object):
         self.ant_count = ant_count
         self.generations = generations
         self.update_strategy = strategy
+        # self.divider = 1  # TODO do tworzenia krótkich, powtarzalnych melodii
 
     def _update_pheromone(self, graph: Graph, ants: list):
         for i, row in enumerate(graph.pheromone):
@@ -57,8 +58,9 @@ class ACO(object):
             ants = [_Ant(self, graph) for i in range(self.ant_count)]
             for ant in ants:
                 for i in range(graph.rank - 1):
+                    # for i in range(int((graph.rank - 1)/self.divider)):  # przejście po wszystkich węzłach
                     ant._select_next()
-                ant.total_cost += graph.matrix[ant.tabu[-1]][ant.tabu[0]]
+                # ant.total_cost += graph.matrix[ant.tabu[-1]][ant.tabu[0]]  # doliczenie przejścia z ostatniego węzła do początkowego - cykl hamiltona - czy to nam potrzebne? - chyba nie
                 if ant.total_cost < best_cost:
                     best_cost = ant.total_cost
                     best_solution = [] + ant.tabu
@@ -67,6 +69,9 @@ class ACO(object):
             # print('best solution in gen #{}, cost: {}, path: {}'.format(gen, best_cost, best_solution))
             self._update_pheromone(graph, ants)
             # print('generation #{}, best cost: {}, path: {}'.format(gen, best_cost, best_solution))
+        # if self.divider > 1:
+        #     for i in range(self.divider):
+        #         best_solution.extend(best_solution)
         return best_solution, best_cost
 
 

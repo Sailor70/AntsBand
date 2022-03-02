@@ -11,8 +11,8 @@ def play_music(music_file):
         return
     pygame.mixer.music.play()
     # while pygame.mixer.music.get_busy():
-    # check if playback has finished
-    # clock.tick(30)
+    #     # check if playback has finished
+    #     clock.tick(30)
 
 
 def check_if_playing():
@@ -56,3 +56,7 @@ def prepare_and_play(file):
         pygame.mixer.music.fadeout(1000)
         pygame.mixer.music.stop()
         raise SystemExit
+
+
+# if __name__ == '__main__':
+#     prepare_and_play("data/result.mid")
