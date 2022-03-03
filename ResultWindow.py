@@ -65,7 +65,7 @@ class ResultWindow:
 
     def evaluate_melody(self):
         try:
-            self.evaluation_value_label.config(text="Ocena: "+f"{evaluate_melody(self.midi_result, self.tracks_data[self.radio_var.get()], self.midi_base_input):.1f}")
+            self.evaluation_value_label.config(text="Ocena: "+f"{evaluate_melody(self.midi_result, self.tracks_data[self.radio_var.get()]):.1f}")
         except Exception as e:
             messagebox.showerror('Błąd', 'Wystąpił błąd: ' + str(e))
             raise  # pluje błędem do konsoli

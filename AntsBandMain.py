@@ -7,7 +7,7 @@ from mido import MidiFile
 from aco import ACO, Graph
 from acs import ACS, GraphACS
 from midiPlayer import prepare_and_play
-from AntsBandActions import plot, evaluate_melody
+from AntsBandActions import plot, evaluate_melody, calculate_similarity
 
 
 class AntsBand(object):
@@ -272,4 +272,5 @@ if __name__ == '__main__':
     midi_result, tracks_data = antsBand.start_and_divide(4)
     # midi_result, tracks_data = antsBand.start_divide_and_extend(4, 2, [4])
     # midi_result, tracks_data = antsBand.start()
-    print(evaluate_melody(midi_result, tracks_data[0], MidiFile('data/theRockingAntDrums.mid', clip=True)))
+    print(evaluate_melody(midi_result, tracks_data[0]))
+    calculate_similarity(midi_result, tracks_data[0], MidiFile('data/theRockingAntDrums.mid', clip=True))

@@ -24,8 +24,26 @@ def delete_other_tracks(mid: MidiFile, track_number: int):
             reduced_mid.tracks.append(track)
     return reduced_mid
 
+def calculate_similarity(midi_result: MidiFile, track_data, midi_input: MidiFile):
+    track_number = track_data['track_number']
+    input_track = midi_input.tracks[track_number]
+    all_notes = 0  # notes messages - liczba nut to all_notes/2
+    similar_notes = 0
+    similar_times = 0
+    for i, msg in enumerate(midi_result.tracks[track_number]):
+        if msg.type == 'note_on' or msg.type == 'note_off':
+            all_notes += 1
+            if msg.note == input_track[i].note:
+                similar_notes += 1
+            if msg.time == input_track[i].time:
+                similar_times += 1
+    print("similar notes", similar_notes)
+    print("similar notes factor", str(similar_notes/all_notes))
+    print("similar_times", similar_times)
+    print("all_notes", all_notes)
+    return [similar_notes, similar_times]
 
-def evaluate_melody(midi_result: MidiFile, track_data, midi_input: MidiFile):
+def evaluate_melody(midi_result: MidiFile, track_data):
     clocks_per_click = midi_result.tracks[0][0].clocks_per_click
     numerator = midi_result.tracks[0][0].numerator
     denominator = midi_result.tracks[0][0].denominator
