@@ -26,19 +26,21 @@ class ResultWindow:
         self.file_name = "result" + str(random.randint(0, 10000)) + ".mid"
 
         canvas = Canvas(master, width=500, height=600)
-        canvas.grid(columnspan=3, rowspan=4)
+        canvas.grid(columnspan=3, rowspan=5)
 
         self.play_pause_btn = Button(master, text="Graj", command=lambda: self.play_pause(), font="Raleway", bg="#41075e", fg="white", height=1, width=15)
         self.stop_btn = Button(master, text='Stop', command=lambda: self.stop_playing(), font="Raleway", bg="#41075e", fg="white", height=1, width=15)
         self.save_btn = Button(master, text="Zapisz plik", command=lambda: self.save_file(), font="Raleway", bg="#41075e", fg="white", height=1, width=15)
         self.sepatate_btn = Button(master, text='Odseparuj ścieżkę', command=lambda: self.separate_track(), font="Raleway", bg="#41075e", fg="white", height=1, width=15)
         self.evaluation_value_label = Label(master, text="", font="Raleway")
+        self.similarity_label = Label(master, text="", font="Raleway")
 
         self.play_pause_btn.grid(row=0, column=0, sticky='n', pady=15)
         self.stop_btn.grid(row=0, column=1, sticky='n', pady=15)
         self.save_btn.grid(row=0, column=2, sticky='n', pady=15)
         self.sepatate_btn.grid(row=3, column=0, sticky='n')
         self.evaluation_value_label.grid(row=3, column=1, sticky='n')
+        self.similarity_label.grid(row=4, column=0, columnspan=3, sticky='n')
 
         self.init_radio_buttons()
         self.print_plot()
@@ -66,6 +68,8 @@ class ResultWindow:
     def evaluate_melody(self):
         try:
             self.evaluation_value_label.config(text="Ocena: "+f"{evaluate_melody(self.midi_result, self.tracks_data[self.radio_var.get()]):.1f}")
+            similar_notes_factor, similar_times_factor = calculate_similarity(self.midi_result, self.tracks_data[self.radio_var.get()], self.midi_base_input)
+            self.similarity_label.config(text="Podobieństwo nut: "+f"{similar_notes_factor*100:.1f}%" + ", czasów: " + f"{similar_times_factor*100:.1f}%")
         except Exception as e:
             messagebox.showerror('Błąd', 'Wystąpił błąd: ' + str(e))
             raise  # pluje błędem do konsoli

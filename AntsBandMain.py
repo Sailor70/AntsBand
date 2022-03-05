@@ -79,7 +79,7 @@ class AntsBand(object):
             cost_matrix.append(row)
         if self.algorithm_type == 0:
             aco = ACO(self.ant_count, self.generations, self.alpha, self.beta, self.rho, self.Q, 2)
-            # aco = ACO(10, 10, 1.0, 5, 0.1, 1, 2)
+            # aco = ACO(10, 10, 1.0, 5, 0.9, 1, 2)
             # ACO(1, 1, 5.0, 0, 0.01, 1, 2) - ustawienie do odtworzenia orginalnego
             # utworu ( ale tylko gdy mrówka zaczenie w dobrym miejscu - w nucie początkowej ? - to zagra tak samo)
             # aco = ACO(10, 100, 1.0, 8.0, 0.5, 10, 2)
@@ -191,7 +191,7 @@ class AntsBand(object):
             tracks_data.append({'track_number': track_number, 'line_path': line_path, 'line_notes': line_notes, 'line_melody_track': line_melody_track})
 
         self.midi_file.save("data/result.mid")
-        prepare_and_play("data/result.mid")
+        # prepare_and_play("data/result.mid")
         return [self.midi_file, tracks_data]
 
     def build_new_melody_track_extend(self, melody_track: MidiTrack, path: list, notes_messages: list):
@@ -267,7 +267,7 @@ class AntsBand(object):
 
 
 if __name__ == '__main__':
-    antsBand = AntsBand(MidiFile('data/theRockingAntDrums.mid', clip=True), [2, 3], True, 1, 0, 10, 10, 1.0, 5, 0.1, 1, 0.1, 0.9)
+    antsBand = AntsBand(MidiFile('data/theRockingAntDrums.mid', clip=True), [2, 3], True, 1, 0, 10, 10, 1.0, 5, 0.9, 1, 0.1, 0.9)
     # antsBand.start()
     midi_result, tracks_data = antsBand.start_and_divide(4)
     # midi_result, tracks_data = antsBand.start_divide_and_extend(4, 2, [4])

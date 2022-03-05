@@ -27,7 +27,7 @@ class ACO(object):
         :param alpha: ważność feromonu
         :param beta: ważność informacji heurystycznej
         :param rho: współczynnik odparowania śladu feromonowego
-        :param q: intensywność feromonu
+        :param q: intensywność feromonu - ilość uwalnianego feromonu
         :param strategy: strategia aktualizacji śladu feromonowego. 0 - ant-cycle, 1 - ant-quality, 2 - ant-density
         """
         self.Q = q
@@ -42,7 +42,7 @@ class ACO(object):
     def _update_pheromone(self, graph: Graph, ants: list):
         for i, row in enumerate(graph.pheromone):
             for j, col in enumerate(row):
-                graph.pheromone[i][j] *= self.rho
+                graph.pheromone[i][j] *= 1 - self.rho  # 1-self.rho
                 for ant in ants:
                     graph.pheromone[i][j] += ant.pheromone_delta[i][j]
 
@@ -106,14 +106,14 @@ class _Ant(object):
             except ValueError:
                 pass  # nie rób nic
         # wybierz następny węzeł przez ruletkę prawdopodobieństwa
-        selected = probabilities.index(max(probabilities))  # albo wybór po prostu największego prawdopodobieństwa
-        # selected = 0
-        # rand = random.random()
-        # for i, probability in enumerate(probabilities):
-        #     rand -= probability
-        #     if rand <= 0:
-        #         selected = i
-        #         break
+        # selected = probabilities.index(max(probabilities))  # albo wybór po prostu największego prawdopodobieństwa
+        selected = 0
+        rand = random.random()
+        for i, probability in enumerate(probabilities):
+            rand -= probability
+            if rand <= 0:
+                selected = i
+                break
         self.allowed.remove(selected)
         self.tabu.append(selected)
         self.total_cost += self.graph.matrix[self.current][selected]

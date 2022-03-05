@@ -1,3 +1,4 @@
+import copy
 from tkinter import *
 from tkinter import tix
 from tkinter.filedialog import askopenfile
@@ -17,6 +18,7 @@ class MainWindow:
         master.title("AntsBand 1.0")
         master.geometry("600x350")
         # master.resizable(False, False)
+        master.option_add("*Font", "Raleway")  # czcionka globalnie
 
         # zmienne pomocnicze
         self.midi_input = None
@@ -47,21 +49,29 @@ class MainWindow:
         self.track_length = Label(master, text="Długość utworu: ", font="Raleway")
         vcmdInt = (master.register(self.validateInt), '%d', '%i', '%P', '%s', '%S', '%v', '%V', '%W')
         vcmdFloat = (master.register(self.validateFloat), '%d', '%i', '%P', '%s', '%S', '%v', '%V', '%W')
-        self.track_length_entry = Entry(master, text='Długość utworu', validate="key", validatecommand=vcmdInt)
+        self.track_length_entry = Entry(master, text='Długość utworu', validate="key", validatecommand=vcmdInt, width=8)
         self.keep_timing_checkbox = Checkbutton(master, text='Zachowaj timing', variable=self.keep_old_timing)
         self.split_tracks_checkbox = Checkbutton(master, text='Podziel ścieżki', variable=self.split_tracks)
         self.algorithm_label = Label(master, text="Algorytm: ", font="Raleway")
-        self.split_entry = Entry(master, text='Liczba części', validate="key", validatecommand=vcmdInt)
+        self.split_entry = Entry(master, text='Liczba części', validate="key", validatecommand=vcmdInt, width=8)
         self.as_radio_btn = Radiobutton(self.master, text='AS', variable=self.algorithm_var, value=0, command=lambda: self.algorithm_change())
         self.acs_radio_btn = Radiobutton(self.master, text='ACS', variable=self.algorithm_var, value=1, command=lambda: self.algorithm_change())
-        self.ant_count_entry = Entry(master, text='liczba mrówek', validate="key", validatecommand=vcmdInt)
-        self.generations = Entry(master, text='liczba iteracji', validate="key", validatecommand=vcmdInt)
-        self.alpha = Entry(master, text='alpha', validate="key", validatecommand=vcmdFloat)
-        self.beta = Entry(master, text='beta', validate="key", validatecommand=vcmdFloat)
-        self.rho = Entry(master, text='rho', validate="key", validatecommand=vcmdFloat)
-        self.q = Entry(master, text='intensywność feromonu', validate="key", validatecommand=vcmdInt)
-        self.phi = Entry(master, text='współczynnik parowania', validate="key", validatecommand=vcmdFloat)
-        self.q_zero = Entry(master, text='współczynnik chciwości', validate="key", validatecommand=vcmdFloat)
+        self.ant_count_label = Label(master, text='l. mrówek')
+        self.generations_label = Label(master, text='l. iteracji')
+        self.alpha_label = Label(master, text='\u03B1')
+        self.beta_label = Label(master, text='\u03B2')
+        self.rho_label = Label(master, text='\u03C1')
+        self.q_label = Label(master, text='q')
+        self.phi_label = Label(master, text='\u03C6')
+        self.q_zero_label = Label(master, text='q0')
+        self.ant_count_entry = Entry(master, text='liczba mrówek', validate="key", validatecommand=vcmdInt, width=8)
+        self.generations = Entry(master, text='liczba iteracji', validate="key", validatecommand=vcmdInt, width=8)
+        self.alpha = Entry(master, text='alpha', validate="key", validatecommand=vcmdFloat, width=8)
+        self.beta = Entry(master, text='beta', validate="key", validatecommand=vcmdFloat, width=8)
+        self.rho = Entry(master, text='rho', validate="key", validatecommand=vcmdFloat, width=8)
+        self.q = Entry(master, text='intensywność feromonu', validate="key", validatecommand=vcmdInt, width=8)
+        self.phi = Entry(master, text='współczynnik parowania (lokalny)', validate="key", validatecommand=vcmdFloat, width=8)
+        self.q_zero = Entry(master, text='współczynnik chciwości', validate="key", validatecommand=vcmdFloat, width=8)
         self.start_btn = Button(master, text='Komponuj', command=lambda: self.start_ants_band(), font="Raleway", bg="#41075e", fg="white", height=1, width=15)
         self.exit_btn = Button(master, text='Zakończ', command=self.master.destroy, font="Raleway", bg="#41075e", fg="white", height=1, width=15)
 
@@ -76,13 +86,21 @@ class MainWindow:
         self.algorithm_label.grid(row=4, column=0)
         self.as_radio_btn.grid(row=4, column=1, sticky='ew')
         self.acs_radio_btn.grid(row=4, column=2, sticky='ew')
-        self.ant_count_entry.grid(row=5, column=0)
-        self.generations.grid(row=5, column=1)
+        self.ant_count_label.grid(row=5, column=0, sticky='w', padx=5)
+        self.ant_count_entry.grid(row=5, column=0, padx=70)
+        self.generations_label.grid(row=5, column=1, sticky='w')
+        self.generations.grid(row=5, column=1, padx=60)
+        self.alpha_label.grid(row=5, column=2, sticky='w')
         self.alpha.grid(row=5, column=2)
-        self.beta.grid(row=6, column=0)
+        self.beta_label.grid(row=6, column=0, sticky='w', padx=5)
+        self.beta.grid(row=6, column=0, padx=60)
+        self.rho_label.grid(row=6, column=1, sticky='w')
         self.rho.grid(row=6, column=1)
+        self.q_label.grid(row=6, column=2, sticky='w')
         self.q.grid(row=6, column=2)
-        self.phi.grid(row=7, column=0)
+        self.phi_label.grid(row=7, column=0, sticky='w', padx=5)
+        self.phi.grid(row=7, column=0, padx=60)
+        self.q_zero_label.grid(row=7, column=1, sticky='w')
         self.q_zero.grid(row=7, column=1)
         self.start_btn.grid(row=8, column=0)
         self.exit_btn.grid(row=8, column=2)
@@ -91,12 +109,12 @@ class MainWindow:
         self.generations.insert(END, 10)
         self.alpha.insert(END, 1.0)
         self.beta.insert(END, 5)
-        self.rho.insert(END, 0.1)
+        self.rho.insert(END, 0.9)
         self.q.insert(END, 1)
         self.split_entry.insert(END, 4)
         self.track_length_entry.insert(END, 1)
         self.phi.insert(END, 0.1)
-        self.q_zero.insert(END, 0.9)
+        self.q_zero.insert(END, 0.5)
 
         ant_count_entry_tip = Balloon(master)
         generations_tip = Balloon(master)
@@ -105,6 +123,8 @@ class MainWindow:
         rho_tip = Balloon(master)
         q_tip = Balloon(master)
         split_tip = Balloon(master)
+        phi_tip = Balloon(master)
+        q_zero_tip = Balloon(master)
 
         ant_count_entry_tip.bind_widget(self.ant_count_entry, balloonmsg="liczba mrówek")
         generations_tip.bind_widget(self.generations, balloonmsg="liczba iteracji")
@@ -113,6 +133,8 @@ class MainWindow:
         rho_tip.bind_widget(self.rho, balloonmsg="współczynnik odparowania śladu feromonowego")
         q_tip.bind_widget(self.q, balloonmsg="intensywność feromonu")
         split_tip.bind_widget(self.split_entry, balloonmsg="Liczba części")
+        phi_tip.bind_widget(self.phi, balloonmsg="Współczynnik odparowania śladu feromonowego (lokalnie, po każdym przejściu)")
+        q_zero_tip.bind_widget(self.q_zero, balloonmsg="Współczynnik chciwości")
 
         self.start_btn["state"] = "disabled"
         self.phi["state"] = "disabled"
@@ -161,8 +183,11 @@ class MainWindow:
                 selected_paths.append(track_number)
             else:
                 not_selected_paths.append(track_number)
+        if len(selected_paths) < 1:
+            messagebox.showerror('Nieprawidłowa wartość', 'Wybierz przynajmniej jedną ścieżkę')
+            return 0
         # ants_band = AntsBand(MidiFile('data/theRockingAnt.mid', clip=True), [2, 3])
-        ants_band = AntsBand(self.midi_input, selected_paths, self.keep_old_timing.get(), self.track_length_entry.get(), self.algorithm_var.get(),
+        ants_band = AntsBand(copy.deepcopy(self.midi_input), selected_paths, self.keep_old_timing.get(), self.track_length_entry.get(), self.algorithm_var.get(),
                              int(self.ant_count_entry.get()), int(self.generations.get()), float(self.alpha.get()),
                              float(self.beta.get()), float(self.rho.get()), int(self.q.get()), float(self.phi.get()), float(self.q_zero.get()))
         try:

@@ -41,7 +41,7 @@ def calculate_similarity(midi_result: MidiFile, track_data, midi_input: MidiFile
     print("similar notes factor", str(similar_notes/all_notes))
     print("similar_times", similar_times)
     print("all_notes", all_notes)
-    return [similar_notes, similar_times]
+    return [similar_notes/all_notes, similar_times/all_notes]
 
 def evaluate_melody(midi_result: MidiFile, track_data):
     clocks_per_click = midi_result.tracks[0][0].clocks_per_click
