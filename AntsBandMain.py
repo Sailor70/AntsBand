@@ -69,7 +69,7 @@ class AntsBand(object):
                     # dla tego dźwięku (zawsze para note_on i note_off)
         return [notes, notes_messages]
 
-    def get_new_aco_melody_for_instrument(self, notes: list, acs_alg: bool = True):
+    def get_new_aco_melody_for_instrument(self, notes: list):
         cost_matrix = []
         rank = len(notes)
         for i in range(rank):
@@ -272,5 +272,5 @@ if __name__ == '__main__':
     midi_result, tracks_data = antsBand.start_and_divide(4)
     # midi_result, tracks_data = antsBand.start_divide_and_extend(4, 2, [4])
     # midi_result, tracks_data = antsBand.start()
-    print(evaluate_melody(midi_result, tracks_data[0]))
-    calculate_similarity(midi_result, tracks_data[0], MidiFile('data/theRockingAntDrums.mid', clip=True))
+    print(evaluate_melody(midi_result, tracks_data[1]))
+    calculate_similarity(midi_result, tracks_data[1], MidiFile('data/theRockingAntDrums.mid', clip=True))

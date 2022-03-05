@@ -43,18 +43,34 @@ def calculate_similarity(midi_result: MidiFile, track_data, midi_input: MidiFile
     print("all_notes", all_notes)
     return [similar_notes/all_notes, similar_times/all_notes]
 
-def evaluate_melody(midi_result: MidiFile, track_data):
+def evaluate_melody(midi_result: MidiFile, track_data):  # TODO ujednolicić wpływ czynników na result
+    # np wszystkie czynniki od 0 do 1, albo odpowiednio wagami manipulować
     clocks_per_click = midi_result.tracks[0][0].clocks_per_click
     numerator = midi_result.tracks[0][0].numerator
     denominator = midi_result.tracks[0][0].denominator
     notes_in_time_factor = calculate_notes_in_time(track_data, clocks_per_click, numerator, denominator)
     repeated_sequences_factor = check_notes_sequences_repetition(track_data)
-    base_notes_at_accents_factor = check_base_notes_at_accents(track_data, clocks_per_click, numerator, denominator)
-    print("repeated_sequences_factor", repeated_sequences_factor)
-    print("base_notes_at_accents_factor", base_notes_at_accents_factor)
-    evaluation_result = 1 * notes_in_time_factor + 0.4 * repeated_sequences_factor + 0.5 * base_notes_at_accents_factor  # metoda ważonych kryteriów
+    base_notes_at_accents_factor = check_base_notes_at_accents(track_data, clocks_per_click, numerator, denominator)  # z tego chyba się zrezygnuje
+    cosonance_dissonance_factor = check_cosonance_dissonance(track_data)
+    print("cosonance_dissonance_factor: ", cosonance_dissonance_factor)
+    # print("repeated_sequences_factor", repeated_sequences_factor)
+    # print("base_notes_at_accents_factor", base_notes_at_accents_factor)
+    evaluation_result = 1 * notes_in_time_factor + 0.2 * repeated_sequences_factor + 1 * cosonance_dissonance_factor  # metoda ważonych kryteriów
     return evaluation_result
 
+# liczy czy pomiędzy dźwiękami występuje kosonans, czy dysonans na podstawie interwałów
+def check_cosonance_dissonance(track_data):
+    notes = [track_data['line_notes'][track_data['line_path'][i]] for i in range(len(track_data['line_path']))]  # przenieść do evaluate_melody
+    cosonance_intervals = [0, 3, 4, 5, 7, 8, 9, 12]  # konsonansy
+    cosonances_counter = 0
+    for i, prev_note in enumerate(notes, 1):
+        interval = abs(prev_note-notes[i])
+        if interval in cosonance_intervals:
+            cosonances_counter += 1
+        if i == len(notes)-1:
+            break
+    print("cosonances_counter: ", cosonances_counter)
+    return cosonances_counter/(len(notes)-1)
 
 def check_base_notes_at_accents(track_data, clocks_per_click, numerator, denominator):
     base_note_value = 41  # dźwięk F w pierwszej oktawie
