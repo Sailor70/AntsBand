@@ -139,7 +139,7 @@ class AntsBand(object):
             line_notes, line_notes_messages = self.read_notes_from_track(self.midi_file.tracks[track_number])
             # ACO dla lini melodycznych
             line_path = self.get_new_aco_melody_for_instrument(line_notes)
-            plot(line_notes, line_path)
+            # plot(line_notes, line_path)
             # utworzenie nowej ścieżki dla instrumentu
             line_melody_track = self.build_new_melody_track(self.midi_file.tracks[track_number], line_path, line_notes_messages)
             # utworzenie pliku wynikowego przez podmianę ścieżek
@@ -183,7 +183,7 @@ class AntsBand(object):
             # print(order)
             # print(phrase_paths)
             line_path, line_notes_messages, line_notes = self.ordered_phrases_to_single_path(phrase_paths, phrases_notes_messages, phrase_notes, order)
-            plot(line_notes, line_path)  # sumaryczny wykres dla złożonych w całość fraz
+            # plot(line_notes, line_path)  # sumaryczny wykres dla złożonych w całość fraz
             # utworzenie ścieżki
             line_melody_track = self.build_new_melody_track(self.midi_file.tracks[track_number], line_path, line_notes_messages)
             # # utworzenie pliku wynikowego przez podmianę ścieżek
@@ -254,7 +254,7 @@ class AntsBand(object):
                     order.append(i)
             random.shuffle(order)  # losowanie kolejności tablic - może mrówkami?
             line_path, line_notes_messages, line_notes = self.ordered_phrases_to_single_path(phrase_paths, phrases_notes_messages, phrase_notes, order)
-            plot(line_notes, line_path)  # sumaryczny wykres dla złożonych w całość fraz
+            # plot(line_notes, line_path)  # sumaryczny wykres dla złożonych w całość fraz
             # utworzenie ścieżki
             line_melody_track = self.build_new_melody_track_extend(self.midi_file.tracks[track_number], line_path, line_notes_messages)
             # # utworzenie pliku wynikowego przez podmianę ścieżek

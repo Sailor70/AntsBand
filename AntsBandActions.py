@@ -37,10 +37,10 @@ def calculate_similarity(midi_result: MidiFile, track_data, midi_input: MidiFile
                 similar_notes += 1
             if msg.time == input_track[i].time:
                 similar_times += 1
-    print("similar notes", similar_notes)
-    print("similar notes factor", str(similar_notes/all_notes))
-    print("similar_times", similar_times)
-    print("all_notes", all_notes)
+    # print("similar notes", similar_notes)
+    # print("similar notes factor", str(similar_notes/all_notes))
+    # print("similar_times", similar_times)
+    # print("all_notes", all_notes)
     return [similar_notes/all_notes, similar_times/all_notes]
 
 def evaluate_melody(midi_result: MidiFile, track_data):  # TODO ujednolicić wpływ czynników na result
@@ -52,10 +52,10 @@ def evaluate_melody(midi_result: MidiFile, track_data):  # TODO ujednolicić wp�
     repeated_sequences_factor = check_notes_sequences_repetition(track_data)
     base_notes_at_accents_factor = check_base_notes_at_accents(track_data, clocks_per_click, numerator, denominator)  # z tego chyba się zrezygnuje
     cosonance_dissonance_factor = check_cosonance_dissonance(track_data)
-    print("cosonance_dissonance_factor: ", cosonance_dissonance_factor)
-    # print("repeated_sequences_factor", repeated_sequences_factor)
-    # print("base_notes_at_accents_factor", base_notes_at_accents_factor)
-    evaluation_result = 1 * notes_in_time_factor + 0.2 * repeated_sequences_factor + 1 * cosonance_dissonance_factor  # metoda ważonych kryteriów
+    print("cosonance_dissonance_factor: ", cosonance_dissonance_factor)  # <0,1>
+    print("repeated_sequences_factor", repeated_sequences_factor)  # od 0 do 40 zazwyczaj
+    print("notes_in_time_factor", notes_in_time_factor)  # <0,2>
+    evaluation_result = 1 * notes_in_time_factor + 0.1 * repeated_sequences_factor + 2 * cosonance_dissonance_factor  # metoda ważonych kryteriów
     return evaluation_result
 
 # liczy czy pomiędzy dźwiękami występuje kosonans, czy dysonans na podstawie interwałów
@@ -69,7 +69,7 @@ def check_cosonance_dissonance(track_data):
             cosonances_counter += 1
         if i == len(notes)-1:
             break
-    print("cosonances_counter: ", cosonances_counter)
+    # print("cosonances_counter: ", cosonances_counter)
     return cosonances_counter/(len(notes)-1)
 
 def check_base_notes_at_accents(track_data, clocks_per_click, numerator, denominator):
@@ -104,7 +104,7 @@ def calculate_notes_in_time(track_data, clocks_per_click, numerator, denominator
                 if time_counter % clocks_per_click == 0:  # jeśli mieści się w siatce nut (trafia w szesnastkę) - ale może lepiej w ćwierćnutę i na raz w takcie
                     eval_notes_time[notes_counter] += 1
                 if time_counter % (clocks_per_click * numerator * denominator) == 0:  # nuta na raz w takcie
-                    eval_notes_time[notes_counter] += 10
+                    eval_notes_time[notes_counter] += 5  # 10 było
                 notes_counter += 1
             if msg.type == 'control_change' and msg.time != 0:  # po ostatnim note off jest control_change wyłączający instrument i
                 # posiadający brakujący time - po nim eventów już nie uwzględniamy
@@ -118,6 +118,7 @@ def check_notes_sequences_repetition(track_data):  # mierzy powtarzalność sekw
     notes = [track_data['line_notes'][track_data['line_path'][i]] for i in range(len(track_data['line_path']))]
     print(notes)
     phrase_occurances = 1
+    # max_phrase_occurances = 1
     minrun = 4   # minimalna długość szukanej frazy
     lendata = len(notes)
     for runlen in range(minrun, lendata // 2):  # iteruje po długościach paternu od 3 po połowy
@@ -127,10 +128,13 @@ def check_notes_sequences_repetition(track_data):  # mierzy powtarzalność sekw
             j = i+runlen
             while j < lendata - runlen:  # znajduje wszystkie inne frazy za aktualnie szukaną
                 s2 = notes[j:j+runlen]
+                # max_phrase_occurances += 1
                 if s1 == s2:
                     # print(s1, " at ", j)
                     phrase_occurances += 1  # może jakieś wagi wprowadzić dla fraz różnej długości?
                     j += runlen
                 else:
                     j += 1
+    # print("max_phrase_occurances: ", max_phrase_occurances)  # czym więcej phrase_occurances tym mniejszy max_phrase_occurances - nie jest miarodajne
+    print("phrase_occurances: ", phrase_occurances)
     return phrase_occurances

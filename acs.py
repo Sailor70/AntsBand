@@ -5,14 +5,12 @@ import random
 class GraphACS(object):
     def __init__(self, cost_matrix: list, N: int):
         """
-        :param cost_matrix: cost matrix
-        :param N: number of nodes
-        :param pheromone: global pheromone
+        :param cost_matrix: macierz kosztów
+        :param N: liczba węzłów
+        :param pheromone: globalny feromon
         """
         self.matrix = cost_matrix
         self.N = N
-        cnn = self.nn_heuristic(cost_matrix, N)
-        # self.initial_pheromone = [[1 / (N * cnn) for j in range(N)] for i in range(N)]
         self.initial_pheromone = [[self.put_pheromone(i, j) for j in range(N)] for i in range(N)]
         self.pheromone = self.initial_pheromone
         # heuristic value
@@ -24,42 +22,22 @@ class GraphACS(object):
         else:
             return 1 / (self.N * self.N)
 
-    def nn_heuristic(self, cost_matrix: list, N: int):
-        total_cost = 0
-        unvisited = list(range(N))
-        start = random.randint(0, N - 1)
-        unvisited.remove(start)
-        selected = start
-
-        while unvisited:
-            mincost = np.inf
-            nearest = -1
-            for i in unvisited:
-                cost = cost_matrix[selected][i]
-                if cost < mincost:
-                    mincost = cost
-                    nearest = i
-            total_cost += mincost
-            selected = nearest
-            unvisited.remove(selected)
-        total_cost += cost_matrix[selected][start]
-        return total_cost
-
 
 # Ant Colony System
 class ACS(object):
-    def __init__(self, n: int, m: int, alpha: float, beta: float, rho: float, phi: float, q_zero: float):
+    def __init__(self, generations: int, ant_count: int, alpha: float, beta: float, rho: float, phi: float, q_zero: float):
         """
-        :param n: number of generations
-        :param m: number of ants
-        :param alpha: history coefficient
-        :param beta: heuristic coefficient
-        :param rho: decay coefficient
-        :param phi: evaporation factor
-        :param q_zero: greediness factor
+        :param generations: liczba iteracji
+        :param ant_count: liczba mrówek
+        :param alpha: ważność feromonu
+        :param beta: ważność informacji heurystycznej
+        :param rho: współczynnik zaniku (globalne odparowanie)
+        :param phi: współczynnik odparowania śladu feromonowego (lokalny)
+        :param q_zero: czynnik chciwości
         """
-        self.n = n
-        self.m = m
+
+        self.generations = generations
+        self.ant_count = ant_count
         self.alpha = alpha
         self.beta = beta
         self.rho = rho
@@ -69,9 +47,9 @@ class ACS(object):
     def solve(self, graph: GraphACS):
         best_cost = float('inf')
         best_solution = []
-        for gen in range(self.n):
+        for gen in range(self.generations):
             print('Generation ', gen)
-            ants = [Ant(self, graph) for i in range(self.m)]
+            ants = [Ant(self, graph) for i in range(self.ant_count)]
             for ant in ants:
                 ant.generate_tour()
                 if ant.total_cost < best_cost:
