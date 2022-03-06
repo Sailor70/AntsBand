@@ -198,7 +198,10 @@ class MainWindow:
                     midi_result, tracks_data = ants_band.start_and_divide(int(self.split_entry.get()))
                 self.openNext(midi_result, tracks_data)
             else:
-                midi_result, tracks_data = ants_band.start()
+                if int(self.track_length_entry.get()) > 1:
+                    midi_result, tracks_data = ants_band.start_and_extend(int(self.track_length_entry.get()), not_selected_paths)
+                else:
+                    midi_result, tracks_data = ants_band.start()
                 self.openNext(midi_result, tracks_data)
         except Exception as e:
             messagebox.showerror('Błąd', 'Wystąpił błąd: ' + str(e))

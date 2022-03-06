@@ -150,6 +150,31 @@ class AntsBand(object):
         # prepare_and_play("data/result.mid")
         return [self.midi_file, tracks_data]
 
+    def start_and_extend(self, track_length: int, not_selected_paths: [int]):
+        try:
+            self.clocks_per_click = self.midi_file.tracks[0][0].clocks_per_click
+        except AttributeError:
+            print("Nie masz w pliku clocks_per_click!")
+            raise
+        tracks_data = []
+        for track_number in self.tracks_numbers:
+            # odczyt nut i eventów midi ze ścieżek
+            line_notes, line_notes_messages = self.read_notes_from_track(self.midi_file.tracks[track_number])
+            # ACO dla lini melodycznych
+            line_path = []
+            for l in range(track_length):
+                line_path.extend(self.get_new_aco_melody_for_instrument(line_notes))  # TODO line_notes i line_notes_messages rozszerzyć i build_new_melody_track_extend
+            # plot(line_notes, line_path)
+            # utworzenie nowej ścieżki dla instrumentu
+            line_melody_track = self.build_new_melody_track(self.midi_file.tracks[track_number], line_path, line_notes_messages)
+            # utworzenie pliku wynikowego przez podmianę ścieżek
+            self.midi_file.tracks[track_number] = line_melody_track
+            tracks_data.append({'track_number': track_number, 'line_path': line_path, 'line_notes': line_notes, 'line_melody_track': line_melody_track})
+
+        # self.midi_file.save("data/result.mid")
+        # prepare_and_play("data/result.mid")
+        return [self.midi_file, tracks_data]
+
     def ordered_phrases_to_single_path(self, phrase_paths: list, phrases_notes_messages: list, phrase_notes: list, order: [int]):
         line_path = []
         line_notes_messages = []
@@ -186,6 +211,7 @@ class AntsBand(object):
             # plot(line_notes, line_path)  # sumaryczny wykres dla złożonych w całość fraz
             # utworzenie ścieżki
             line_melody_track = self.build_new_melody_track(self.midi_file.tracks[track_number], line_path, line_notes_messages)
+            # TODO ta funkcja (up) bierze stare eventy z midi_file.track więc timing będzie ten sam co w pliku wejściowym
             # # utworzenie pliku wynikowego przez podmianę ścieżek
             self.midi_file.tracks[track_number] = line_melody_track
             tracks_data.append({'track_number': track_number, 'line_path': line_path, 'line_notes': line_notes, 'line_melody_track': line_melody_track})
@@ -250,8 +276,8 @@ class AntsBand(object):
             order = []
             for l in range(track_length):
                 for i in range(split):
-                    phrase_paths.append(self.get_new_aco_melody_for_instrument(phrase_notes[i]))
-                    order.append(i)
+                    phrase_paths.append(self.get_new_aco_melody_for_instrument(phrase_notes[i]))  # tworzy 8 różnych ścieżek ale później
+                    order.append(i)  # jak track_length = 2 a split=4, to order będzie miał 8 elementów ale o wartości 0-4 TODO i+(l*split)
             random.shuffle(order)  # losowanie kolejności tablic - może mrówkami?
             line_path, line_notes_messages, line_notes = self.ordered_phrases_to_single_path(phrase_paths, phrases_notes_messages, phrase_notes, order)
             # plot(line_notes, line_path)  # sumaryczny wykres dla złożonych w całość fraz

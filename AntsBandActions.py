@@ -26,16 +26,16 @@ def delete_other_tracks(mid: MidiFile, track_number: int):
 
 def calculate_similarity(midi_result: MidiFile, track_data, midi_input: MidiFile):
     track_number = track_data['track_number']
-    input_track = midi_input.tracks[track_number]
+    result_track = midi_result.tracks[track_number]
     all_notes = 0  # notes messages - liczba nut to all_notes/2
     similar_notes = 0
     similar_times = 0
-    for i, msg in enumerate(midi_result.tracks[track_number]):
+    for i, msg in enumerate(midi_input.tracks[track_number]):  # iteruje po tracku wejściowym bo on może być krótszy
         if msg.type == 'note_on' or msg.type == 'note_off':
             all_notes += 1
-            if msg.note == input_track[i].note:
+            if msg.note == result_track[i].note:
                 similar_notes += 1
-            if msg.time == input_track[i].time:
+            if msg.time == result_track[i].time:
                 similar_times += 1
     # print("similar notes", similar_notes)
     # print("similar notes factor", str(similar_notes/all_notes))
@@ -43,8 +43,7 @@ def calculate_similarity(midi_result: MidiFile, track_data, midi_input: MidiFile
     # print("all_notes", all_notes)
     return [similar_notes/all_notes, similar_times/all_notes]
 
-def evaluate_melody(midi_result: MidiFile, track_data):  # TODO ujednolicić wpływ czynników na result
-    # np wszystkie czynniki od 0 do 1, albo odpowiednio wagami manipulować
+def evaluate_melody(midi_result: MidiFile, track_data):
     clocks_per_click = midi_result.tracks[0][0].clocks_per_click
     numerator = midi_result.tracks[0][0].numerator
     denominator = midi_result.tracks[0][0].denominator
@@ -109,7 +108,7 @@ def calculate_notes_in_time(track_data, clocks_per_click, numerator, denominator
             if msg.type == 'control_change' and msg.time != 0:  # po ostatnim note off jest control_change wyłączający instrument i
                 # posiadający brakujący time - po nim eventów już nie uwzględniamy
                 break
-    # print(eval_notes_time)
+    print("eval_notes_time: ", eval_notes_time)
     # print("notes_counter ", notes_counter)
     # print("len(tracks_data['line_path'])", len(tracks_data['line_path']))
     return sum(eval_notes_time) / notes_counter
