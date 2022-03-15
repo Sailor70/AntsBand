@@ -12,7 +12,7 @@ from AntsBandActions import plot, evaluate_melody, calculate_similarity
 
 class AntsBand(object):
     def __init__(self, midi_file: MidiFile, tracks_numbers: [int], keep_old_timing: bool, result_track_length: int, algorithm_type: int,
-                 ant_count: int, generations: int, alpha: float, beta: float, rho: float, q: int, phi: float, q_zero: float):
+                 ant_count: int, generations: int, alpha: float, beta: float, rho: float, q: int, phi: float, q_zero: float, sigma: float):
         self.midi_file = midi_file  # strings podawać i tworzyć objekt
         self.tracks_numbers = tracks_numbers  # tracksNumbers  # tablica + pętle do tego
         self.available_distances = [0.1, 0.5, 1, 5, 10, 100]
@@ -27,6 +27,7 @@ class AntsBand(object):
         self.generations = generations
         self.phi = phi
         self.q_zero = q_zero
+        self.sigma = sigma
         self.clocks_per_click = 24
 
     def distance(self, a: int, b: int):
@@ -83,12 +84,12 @@ class AntsBand(object):
             # ACO(1, 1, 5.0, 0, 0.01, 1, 2) - ustawienie do odtworzenia orginalnego
             # utworu ( ale tylko gdy mrówka zaczenie w dobrym miejscu - w nucie początkowej ? - to zagra tak samo)
             # aco = ACO(10, 100, 1.0, 8.0, 0.5, 10, 2)
-            graph = Graph(cost_matrix, rank)
+            graph = Graph(cost_matrix, rank, self.sigma)
             path, cost = aco.solve(graph)
             print('cost: {}, path: {}'.format(cost, path))
         else:
             acs = ACS(self.ant_count, self.generations, self.alpha, self.beta, self.rho, phi=self.phi, q_zero=self.q_zero)  # self.phi, self.q_zero
-            graph = GraphACS(cost_matrix, rank)
+            graph = GraphACS(cost_matrix, rank, self.sigma)
             path, cost = acs.solve(graph)
             print('cost2: {}, path2: {}'.format(cost, path))
         # plot(notes, path)  # wykres
@@ -293,7 +294,9 @@ class AntsBand(object):
 
 
 if __name__ == '__main__':
-    antsBand = AntsBand(MidiFile('data/theRockingAntDrums.mid', clip=True), [2, 3], True, 1, 0, 10, 10, 1.0, 5, 0.9, 1, 0.1, 0.9)
+    antsBand = AntsBand(midi_file=MidiFile('data/theRockingAntDrums.mid', clip=True), tracks_numbers=[2, 3],
+                        keep_old_timing=True, result_track_length=1, algorithm_type=0, ant_count=10, generations=10,
+                        alpha=1.0, beta=5, rho=0.9, q=1, phi=0.1, q_zero=0.9, sigma=10.0)
     # antsBand.start()
     midi_result, tracks_data = antsBand.start_and_divide(4)
     # midi_result, tracks_data = antsBand.start_divide_and_extend(4, 2, [4])

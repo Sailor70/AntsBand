@@ -3,7 +3,7 @@ import random
 
 
 class GraphACS(object):
-    def __init__(self, cost_matrix: list, N: int):
+    def __init__(self, cost_matrix: list, N: int, sigma: float):
         """
         :param cost_matrix: macierz kosztów
         :param N: liczba węzłów
@@ -13,12 +13,13 @@ class GraphACS(object):
         self.N = N
         self.initial_pheromone = [[self.put_pheromone(i, j) for j in range(N)] for i in range(N)]
         self.pheromone = self.initial_pheromone
+        self.sigma = sigma
         # heuristic value
         self.eta = [[0 if i == j else 1 / cost_matrix[i][j] for j in range(N)] for i in range(N)]
 
     def put_pheromone(self, i: int, j: int):  # zainicjowanie śladu feromonowego zgodnie z oryginalną melodią
         if j == i+1:
-            return 10
+            return self.sigma
         else:
             return 1 / (self.N * self.N)
 

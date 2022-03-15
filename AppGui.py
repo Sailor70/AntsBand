@@ -64,6 +64,7 @@ class MainWindow:
         self.q_label = Label(master, text='q')
         self.phi_label = Label(master, text='\u03C6')
         self.q_zero_label = Label(master, text='q0')
+        self.sigma_label = Label(master, text='\u03C3')
         self.ant_count_entry = Entry(master, text='liczba mrówek', validate="key", validatecommand=vcmdInt, width=8)
         self.generations = Entry(master, text='liczba iteracji', validate="key", validatecommand=vcmdInt, width=8)
         self.alpha = Entry(master, text='alpha', validate="key", validatecommand=vcmdFloat, width=8)
@@ -72,6 +73,7 @@ class MainWindow:
         self.q = Entry(master, text='intensywność feromonu', validate="key", validatecommand=vcmdInt, width=8)
         self.phi = Entry(master, text='współczynnik parowania (lokalny)', validate="key", validatecommand=vcmdFloat, width=8)
         self.q_zero = Entry(master, text='współczynnik chciwości', validate="key", validatecommand=vcmdFloat, width=8)
+        self.sigma = Entry(master, text='feromon inicjalny', validate="key", validatecommand=vcmdFloat, width=8)
         self.start_btn = Button(master, text='Komponuj', command=lambda: self.start_ants_band(), font="Raleway", bg="#41075e", fg="white", height=1, width=15)
         self.exit_btn = Button(master, text='Zakończ', command=self.master.destroy, font="Raleway", bg="#41075e", fg="white", height=1, width=15)
 
@@ -102,6 +104,8 @@ class MainWindow:
         self.phi.grid(row=7, column=0, padx=60)
         self.q_zero_label.grid(row=7, column=1, sticky='w')
         self.q_zero.grid(row=7, column=1)
+        self.sigma_label.grid(row=7, column=2, sticky='w')
+        self.sigma.grid(row=7, column=2)
         self.start_btn.grid(row=8, column=0)
         self.exit_btn.grid(row=8, column=2)
 
@@ -115,6 +119,7 @@ class MainWindow:
         self.track_length_entry.insert(END, 1)
         self.phi.insert(END, 0.1)
         self.q_zero.insert(END, 0.5)
+        self.sigma.insert(END, 10.0)
 
         ant_count_entry_tip = Balloon(master)
         generations_tip = Balloon(master)
@@ -125,6 +130,7 @@ class MainWindow:
         split_tip = Balloon(master)
         phi_tip = Balloon(master)
         q_zero_tip = Balloon(master)
+        sigma_tip = Balloon(master)
 
         ant_count_entry_tip.bind_widget(self.ant_count_entry, balloonmsg="liczba mrówek")
         generations_tip.bind_widget(self.generations, balloonmsg="liczba iteracji")
@@ -135,6 +141,7 @@ class MainWindow:
         split_tip.bind_widget(self.split_entry, balloonmsg="Liczba części")
         phi_tip.bind_widget(self.phi, balloonmsg="Współczynnik odparowania śladu feromonowego (lokalnie, po każdym przejściu)")
         q_zero_tip.bind_widget(self.q_zero, balloonmsg="Współczynnik chciwości")
+        sigma_tip.bind_widget(self.sigma, balloonmsg="feromon inicjalny")
 
         self.start_btn["state"] = "disabled"
         self.phi["state"] = "disabled"
@@ -187,9 +194,11 @@ class MainWindow:
             messagebox.showerror('Nieprawidłowa wartość', 'Wybierz przynajmniej jedną ścieżkę')
             return 0
         # ants_band = AntsBand(MidiFile('data/theRockingAnt.mid', clip=True), [2, 3])
-        ants_band = AntsBand(copy.deepcopy(self.midi_input), selected_paths, self.keep_old_timing.get(), self.track_length_entry.get(), self.algorithm_var.get(),
-                             int(self.ant_count_entry.get()), int(self.generations.get()), float(self.alpha.get()),
-                             float(self.beta.get()), float(self.rho.get()), int(self.q.get()), float(self.phi.get()), float(self.q_zero.get()))
+        ants_band = AntsBand(midi_file=copy.deepcopy(self.midi_input), tracks_numbers=selected_paths, keep_old_timing=self.keep_old_timing.get(),
+                             result_track_length=self.track_length_entry.get(), algorithm_type=self.algorithm_var.get(),
+                             ant_count=int(self.ant_count_entry.get()), generations=int(self.generations.get()), alpha=float(self.alpha.get()),
+                             beta=float(self.beta.get()), rho=float(self.rho.get()), q=int(self.q.get()), phi=float(self.phi.get()),
+                             q_zero=float(self.q_zero.get()), sigma=float(self.sigma.get()))
         try:
             if self.split_tracks.get():
                 if int(self.track_length_entry.get()) > 1:

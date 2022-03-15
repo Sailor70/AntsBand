@@ -2,18 +2,19 @@ import random
 # TODO eksperyment z odnoszeniem się do tabu
 
 class Graph(object):
-    def __init__(self, cost_matrix: list, rank: int):
+    def __init__(self, cost_matrix: list, rank: int, sigma: float):
         """
         :param cost_matrix: macierz kosztów przejscia - odległości między dźwiękami - większa odległość = większy koszt
         :param rank: liczba węzłów grafu
         """
         self.matrix = cost_matrix
         self.rank = rank
+        self.sigma = sigma
         self.pheromone = [[self.put_pheromone(i, j) for j in range(rank)] for i in range(rank)]
 
     def put_pheromone(self, i: int, j: int):  # zainicjowanie śladu feromonowego zgodnie z oryginalną melodią
         if j == i+1:
-            return 10
+            return self.sigma
         else:
             return 1 / (self.rank * self.rank)
 
