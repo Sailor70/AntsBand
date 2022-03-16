@@ -1,4 +1,5 @@
 import copy
+import time
 from tkinter import *
 from tkinter import tix
 from tkinter.filedialog import askopenfile
@@ -200,18 +201,19 @@ class MainWindow:
                              beta=float(self.beta.get()), rho=float(self.rho.get()), q=int(self.q.get()), phi=float(self.phi.get()),
                              q_zero=float(self.q_zero.get()), sigma=float(self.sigma.get()))
         try:
+            start_time = time.time()
             if self.split_tracks.get():
                 if int(self.track_length_entry.get()) > 1:
                         midi_result, tracks_data = ants_band.start_divide_and_extend(int(self.split_entry.get()), int(self.track_length_entry.get()), not_selected_paths)
                 else:
                     midi_result, tracks_data = ants_band.start_and_divide(int(self.split_entry.get()))
-                self.openNext(midi_result, tracks_data)
             else:
                 if int(self.track_length_entry.get()) > 1:
                     midi_result, tracks_data = ants_band.start_and_extend(int(self.track_length_entry.get()), not_selected_paths)
                 else:
                     midi_result, tracks_data = ants_band.start()
-                self.openNext(midi_result, tracks_data)
+            execution_time = time.time() - start_time
+            self.openNext(midi_result, tracks_data, execution_time)
         except Exception as e:
             messagebox.showerror('Błąd', 'Wystąpił błąd: ' + str(e))
             raise  # pluje błędem do konsoli
@@ -238,9 +240,9 @@ class MainWindow:
         else:
             return False
 
-    def openNext(self, midi_result, tracks_data):
+    def openNext(self, midi_result, tracks_data, execution_time):
         self.newWindow = Toplevel(self.master)
-        self.app = ResultWindow(self.newWindow, midi_result, tracks_data, self.midi_input)
+        self.app = ResultWindow(self.newWindow, midi_result, tracks_data, self.midi_input, execution_time)
 
 
 root = tix.Tk()

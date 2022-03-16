@@ -7,11 +7,10 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from tkinter import messagebox
 
 from AntsBandActions import *
-from midiPlayer import *
 
 
 class ResultWindow:
-    def __init__(self, master, midi_result: MidiFile, tracks_data, midi_input: MidiFile):
+    def __init__(self, master, midi_result: MidiFile, tracks_data, midi_input: MidiFile, execution_time: float):
         self.master = master
         master.title("Uzyskany wynik")
         master.geometry("500x600")
@@ -20,6 +19,7 @@ class ResultWindow:
         self.midi_result = midi_result
         self.tracks_data = tracks_data
         self.midi_base_input = midi_input
+        self.execution_time = execution_time
         self.is_playing = False
         self.is_paused = False
         self.radio_var = IntVar()
@@ -33,6 +33,7 @@ class ResultWindow:
         self.save_btn = Button(master, text="Zapisz plik", command=lambda: self.save_file(), font="Raleway", bg="#41075e", fg="white", height=1, width=15)
         self.sepatate_btn = Button(master, text='Odseparuj ścieżkę', command=lambda: self.separate_track(), font="Raleway", bg="#41075e", fg="white", height=1, width=15)
         self.evaluation_value_label = Label(master, text="", font="Raleway")
+        self.execution_time_label = Label(master, text="Czas: "+f"{self.execution_time:.3f} s", font="Raleway")
         self.similarity_label = Label(master, text="", font="Raleway")
 
         self.play_pause_btn.grid(row=0, column=0, sticky='n', pady=15)
@@ -40,6 +41,7 @@ class ResultWindow:
         self.save_btn.grid(row=0, column=2, sticky='n', pady=15)
         self.sepatate_btn.grid(row=3, column=0, sticky='n')
         self.evaluation_value_label.grid(row=3, column=1, sticky='n')
+        self.execution_time_label.grid(row=3, column=2, sticky='n')
         self.similarity_label.grid(row=4, column=0, columnspan=3, sticky='n')
 
         self.init_radio_buttons()
@@ -67,7 +69,7 @@ class ResultWindow:
 
     def evaluate_melody(self):
         try:
-            self.evaluation_value_label.config(text="Ocena: "+f"{evaluate_melody(self.midi_result, self.tracks_data[self.radio_var.get()]):.1f}")
+            self.evaluation_value_label.config(text="Ocena: "+f"{evaluate_melody(self.midi_result, self.tracks_data[self.radio_var.get()]):.3f}")
             similar_notes_factor, similar_times_factor = calculate_similarity(self.midi_result, self.tracks_data[self.radio_var.get()], self.midi_base_input)
             self.similarity_label.config(text="Podobieństwo nut: "+f"{similar_notes_factor*100:.1f}%" + ", czasów: " + f"{similar_times_factor*100:.1f}%")
         except Exception as e:

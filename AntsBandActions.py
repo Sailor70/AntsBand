@@ -52,9 +52,9 @@ def evaluate_melody(midi_result: MidiFile, track_data):
     base_notes_at_accents_factor = check_base_notes_at_accents(track_data, clocks_per_click, numerator, denominator)  # z tego chyba się zrezygnuje
     cosonance_dissonance_factor = check_cosonance_dissonance(track_data)
     print("cosonance_dissonance_factor: ", cosonance_dissonance_factor)  # <0,1>
-    print("repeated_sequences_factor", repeated_sequences_factor)  # od 0 do 40 zazwyczaj
-    print("notes_in_time_factor", notes_in_time_factor)  # <0,2>
-    evaluation_result = 1 * notes_in_time_factor + 0.1 * repeated_sequences_factor + 2 * cosonance_dissonance_factor  # metoda ważonych kryteriów
+    print("repeated_sequences_factor", repeated_sequences_factor)  # <0,1> zazwyczaj. czasem może być > 1
+    print("notes_in_time_factor", notes_in_time_factor)  # <0,1>
+    evaluation_result = 0.33 * notes_in_time_factor + 0.33 * repeated_sequences_factor + 0.33 * cosonance_dissonance_factor   # metoda ważonych kryteriów
     return evaluation_result
 
 # liczy czy pomiędzy dźwiękami występuje kosonans, czy dysonans na podstawie interwałów
@@ -102,8 +102,9 @@ def calculate_notes_in_time(track_data, clocks_per_click, numerator, denominator
             if msg.type == 'note_on':
                 if time_counter % clocks_per_click == 0:  # jeśli mieści się w siatce nut (trafia w szesnastkę) - ale może lepiej w ćwierćnutę i na raz w takcie
                     eval_notes_time[notes_counter] += 1
-                if time_counter % (clocks_per_click * numerator * denominator) == 0:  # nuta na raz w takcie
-                    eval_notes_time[notes_counter] += 5  # 10 było
+                if time_counter % (clocks_per_click * (numerator/2)) == 0:  # ósemka (nuta trafia w którąś z 1/8 taktu)
+                # if time_counter % (clocks_per_click * numerator) == 0:  # ćwierćnuta
+                    eval_notes_time[notes_counter] += 1
                 notes_counter += 1
             if msg.type == 'control_change' and msg.time != 0:  # po ostatnim note off jest control_change wyłączający instrument i
                 # posiadający brakujący time - po nim eventów już nie uwzględniamy
@@ -111,7 +112,7 @@ def calculate_notes_in_time(track_data, clocks_per_click, numerator, denominator
     print("eval_notes_time: ", eval_notes_time)
     # print("notes_counter ", notes_counter)
     # print("len(tracks_data['line_path'])", len(tracks_data['line_path']))
-    return sum(eval_notes_time) / notes_counter
+    return sum(eval_notes_time) / (notes_counter*2)
 
 def check_notes_sequences_repetition(track_data):  # mierzy powtarzalność sekwencji dźwięków w melodi
     notes = [track_data['line_notes'][track_data['line_path'][i]] for i in range(len(track_data['line_path']))]
@@ -120,7 +121,7 @@ def check_notes_sequences_repetition(track_data):  # mierzy powtarzalność sekw
     # max_phrase_occurances = 1
     minrun = 4   # minimalna długość szukanej frazy
     lendata = len(notes)
-    for runlen in range(minrun, lendata // 2):  # iteruje po długościach paternu od 3 po połowy
+    for runlen in range(minrun, lendata // 2):  # iteruje po długościach paternu od 4 po połowy
         i = 0
         for i in range(0, lendata - runlen):  # sprawdza wszystkie pozycje dla frazy szukanej długości
             s1 = notes[i:i + runlen]
@@ -136,4 +137,5 @@ def check_notes_sequences_repetition(track_data):  # mierzy powtarzalność sekw
                     j += 1
     # print("max_phrase_occurances: ", max_phrase_occurances)  # czym więcej phrase_occurances tym mniejszy max_phrase_occurances - nie jest miarodajne
     print("phrase_occurances: ", phrase_occurances)
-    return phrase_occurances
+    print("lendata: ", lendata)
+    return phrase_occurances/lendata
