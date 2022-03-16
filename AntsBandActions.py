@@ -138,4 +138,8 @@ def check_notes_sequences_repetition(track_data):  # mierzy powtarzalność sekw
     # print("max_phrase_occurances: ", max_phrase_occurances)  # czym więcej phrase_occurances tym mniejszy max_phrase_occurances - nie jest miarodajne
     print("phrase_occurances: ", phrase_occurances)
     print("lendata: ", lendata)
-    return phrase_occurances/lendata
+    factor = phrase_occurances/lendata
+    if factor > 1.0:
+        return 1.0
+    else:
+        return factor

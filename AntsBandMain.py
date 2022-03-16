@@ -159,19 +159,16 @@ class AntsBand(object):
             raise
         tracks_data = []
         for track_number in self.tracks_numbers:
-            # odczyt nut i eventów midi ze ścieżek
             line_notes, line_notes_messages = self.read_notes_from_track(self.midi_file.tracks[track_number])
-            # ACO dla lini melodycznych
             line_path = []
             for l in range(track_length):
-                line_path.extend(self.get_new_aco_melody_for_instrument(line_notes))  # TODO line_notes i line_notes_messages rozszerzyć i build_new_melody_track_extend
-            # plot(line_notes, line_path)
-            # utworzenie nowej ścieżki dla instrumentu
-            line_melody_track = self.build_new_melody_track(self.midi_file.tracks[track_number], line_path, line_notes_messages)
-            # utworzenie pliku wynikowego przez podmianę ścieżek
+                line_path.extend(self.get_new_aco_melody_for_instrument(line_notes))
+            line_notes = line_notes*track_length  # replikacja
+            line_notes_messages = line_notes_messages*track_length
+            line_melody_track = self.build_new_melody_track_extend(self.midi_file.tracks[track_number], line_path, line_notes_messages)
             self.midi_file.tracks[track_number] = line_melody_track
             tracks_data.append({'track_number': track_number, 'line_path': line_path, 'line_notes': line_notes, 'line_melody_track': line_melody_track})
-
+        self.extend_unedited_paths(not_selected_paths, track_length)
         # self.midi_file.save("data/result.mid")
         # prepare_and_play("data/result.mid")
         return [self.midi_file, tracks_data]
@@ -237,7 +234,7 @@ class AntsBand(object):
                     result_msg_sequence.append(Message('note_on', channel=old_on_msg.channel, note=new_on_msg.note, velocity=new_on_msg.velocity, time=self.quantizeRound(new_on_msg.time)))
                     result_msg_sequence.append(Message('note_on', channel=old_off_msg.channel, note=new_off_msg.note, velocity=new_off_msg.velocity, time=self.quantizeRound(new_off_msg.time)))
                 path_counter += 1
-        # TODO przy podwajaniu długości tracka trzeba doliczyć pomiędzy czas z końcowych meta messegów
+        # TODO na łączeniach fraz mogą wystąpić rozjazdy rytmiczne przez wyrwanie frazy z kontekstu + rozjazdy na powielaniu tracka
         notes_messages_detected = False
         for i, msg in enumerate(melody_track):  # kopiowanie starych settings messegów do nowego tracka
             if msg.type != 'note_on' and msg.type != 'note_off' and not notes_messages_detected:
@@ -248,7 +245,7 @@ class AntsBand(object):
                 notes_messages_detected = True
         return MidiTrack(result_msg_sequence)
 
-    def extend_unedited_paths(self, not_selected_paths: [int]):
+    def extend_unedited_paths(self, not_selected_paths: [int], track_length: int):
         print("not_selected_paths", not_selected_paths)
         for i in not_selected_paths:
             notes_end_index = 0
@@ -259,7 +256,7 @@ class AntsBand(object):
                 if msg.type != 'note_on' and msg.type != 'note_off' and len(notes_messages) > 0:
                     notes_end_index = j
                     break
-            self.midi_file.tracks[i][notes_end_index:notes_end_index] = notes_messages
+            self.midi_file.tracks[i][notes_end_index:notes_end_index] = notes_messages*(track_length-1)
 
 
     def start_divide_and_extend(self, split: int, track_length: int, not_selected_paths: [int]):  # track_length określa liczbę fraz w finalnym utworze
@@ -277,8 +274,10 @@ class AntsBand(object):
             order = []
             for l in range(track_length):
                 for i in range(split):
-                    phrase_paths.append(self.get_new_aco_melody_for_instrument(phrase_notes[i]))  # tworzy 8 różnych ścieżek ale później
-                    order.append(i)  # jak track_length = 2 a split=4, to order będzie miał 8 elementów ale o wartości 0-4 TODO i+(l*split)
+                    phrase_paths.append(self.get_new_aco_melody_for_instrument(phrase_notes[i]))
+                    order.append(i+(l*split))
+            phrase_notes = phrase_notes*track_length
+            phrases_notes_messages = phrases_notes_messages*track_length
             random.shuffle(order)  # losowanie kolejności tablic - może mrówkami?
             line_path, line_notes_messages, line_notes = self.ordered_phrases_to_single_path(phrase_paths, phrases_notes_messages, phrase_notes, order)
             # plot(line_notes, line_path)  # sumaryczny wykres dla złożonych w całość fraz
@@ -287,19 +286,19 @@ class AntsBand(object):
             # # utworzenie pliku wynikowego przez podmianę ścieżek
             self.midi_file.tracks[track_number] = line_melody_track
             tracks_data.append({'track_number': track_number, 'line_path': line_path, 'line_notes': line_notes, 'line_melody_track': line_melody_track})
-        self.extend_unedited_paths(not_selected_paths)
+        self.extend_unedited_paths(not_selected_paths, track_length)
         self.midi_file.save("data/result.mid")
         # prepare_and_play("data/result.mid")
         return [self.midi_file, tracks_data]
 
 
 if __name__ == '__main__':
-    antsBand = AntsBand(midi_file=MidiFile('data/theRockingAntDrums.mid', clip=True), tracks_numbers=[2, 3],
+    antsBand = AntsBand(midi_file=MidiFile('data/theRockingAntDrums.mid', clip=True), tracks_numbers=[2],
                         keep_old_timing=True, result_track_length=1, algorithm_type=0, ant_count=10, generations=10,
                         alpha=1.0, beta=5, rho=0.9, q=1, phi=0.1, q_zero=0.9, sigma=10.0)
     # antsBand.start()
-    midi_result, tracks_data = antsBand.start_and_divide(4)
-    # midi_result, tracks_data = antsBand.start_divide_and_extend(4, 2, [4])
+    # midi_result, tracks_data = antsBand.start_and_divide(4)
+    midi_result, tracks_data = antsBand.start_divide_and_extend(4, 2, [4])
     # midi_result, tracks_data = antsBand.start()
     print(evaluate_melody(midi_result, tracks_data[1]))
     calculate_similarity(midi_result, tracks_data[1], MidiFile('data/theRockingAntDrums.mid', clip=True))
