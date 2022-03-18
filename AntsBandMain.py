@@ -1,6 +1,5 @@
 import copy
 import random
-import string
 
 import numpy as np
 from mido import Message, MidiTrack
@@ -38,37 +37,13 @@ class AntsBand(object):
         else:
             return result
 
-    def msg2dict(self, msg):
-        result = dict()
-        # print(msg)
-        if 'note_on' in msg:
-            on_ = True
-        elif 'note_off' in msg:
-            on_ = False
-        else:
-            on_ = None
-        result['time'] = int(msg[msg.rfind('time'):].split(' ')[0].split('=')[1].translate(
-            str.maketrans({a: None for a in string.punctuation})))
-
-        if on_ is not None:
-            for k in ['channel', 'note', 'velocity']:
-                result[k] = int(msg[msg.rfind(k):].split(' ')[0].split('=')[1].translate(
-                    str.maketrans({a: None for a in string.punctuation})))
-        return [result, on_]
-
     def read_notes_from_track(self, melody_track: MidiTrack):
         notes = []  # zawiera wysokości kolejno zagranych dźwięków w oryginalnej ścieżce
         notes_messages = []  # zawiera kolejne pełne eventy midi z oryginalnej ścieżki
-        for event in range(len(melody_track)):  # przeanalizuj każdy event midi z ścieżki
-            if isinstance(melody_track[event],
-                          Message):  # interesują nas tylko obiekty typu Message (MetaMessage nieistotne)
-                message, on_ = self.msg2dict(str(melody_track[event]))
-                if on_:
-                    notes.append(message['note'])
-                    notes_messages.append(
-                        [melody_track[event],
-                         melody_track[event + 1]])  # zapisuje do tablicy eventy midi  # TODO poprawić
-                    # dla tego dźwięku (zawsze para note_on i note_off)
+        for i, msg in enumerate(melody_track):  # przeanalizuj każdy event midi z ścieżki
+            if msg.type == 'note_on':  # interesują nas tylko eventy dla nut
+                notes.append(msg.note)
+                notes_messages.append([melody_track[i], melody_track[i + 1]])  # zakładam że w melodii zawsze po note_on jest odpowiadający jej note_off
         return [notes, notes_messages]
 
     def get_new_aco_melody_for_instrument(self, notes: list):
@@ -95,29 +70,6 @@ class AntsBand(object):
             print('cost2: {}, path2: {}'.format(cost, path))
         # plot(notes, path)  # wykres
         return path
-
-
-    def build_new_melody_track(self, melody_track: MidiTrack, path: list, notes_messages: list):
-        path_counter = 0
-        for event in range(len(melody_track)):
-            # if isinstance(melodyTrack[event], Message):
-            old_message, on_ = self.msg2dict(str(melody_track[event]))
-            if on_ and (path_counter < len(path)):
-                new_message, on_must_be = self.msg2dict(str(notes_messages[path[path_counter]][0]))  # weź tą nute do dicta
-                # utwórz nowy message, ale daj odpowiedni czas - czasy trwania nut pozostają z oryginalnego utworu
-                melody_track[event] = Message('note_on', channel=old_message['channel'], note=new_message['note'], velocity=new_message['velocity'], time=old_message['time'])\
-                    if self.keep_old_timing \
-                    else Message('note_on', channel=old_message['channel'], note=new_message['note'], velocity=new_message['velocity'], time=self.quantizeRound(new_message['time']))
-                # utworzenie pauzy starej długości ale nuty nowej wysokości
-                old_off_message, off_ = self.msg2dict(str(melody_track[
-                                                            event + 1]))  # TODO zabezpieczenie gdy nie ma note_off zaraz po note_on lub są w innej kolejności
-                new_off_message, off = self.msg2dict(str(notes_messages[path[path_counter]][1]))
-                melody_track[event + 1] = Message('note_off', channel=old_off_message['channel'], note=new_off_message['note'], velocity=new_off_message['velocity'], time=old_off_message['time'])\
-                    if self.keep_old_timing\
-                    else Message('note_off', channel=old_off_message['channel'], note=new_off_message['note'], velocity=new_off_message['velocity'], time=self.quantizeRound(new_off_message['time']))
-                path_counter += 1
-        return melody_track
-
 
     def quantizeRound(self, value):
         # print(self.clocks_per_click)
@@ -167,7 +119,7 @@ class AntsBand(object):
             line_notes = line_notes*track_length  # replikacja
             # line_notes_messages = line_notes_messages*track_length
             line_notes_messages = self.replicate_and_correct_time(line_notes_messages, track_length)
-            line_melody_track = self.build_new_melody_track_extend(self.midi_file.tracks[track_number], line_path, line_notes_messages)
+            line_melody_track = self.build_new_melody_track(self.midi_file.tracks[track_number], line_path, line_notes_messages)
             self.midi_file.tracks[track_number] = line_melody_track
             tracks_data.append({'track_number': track_number, 'line_path': line_path, 'line_notes': line_notes, 'line_melody_track': line_melody_track})
         self.extend_unedited_paths(not_selected_paths, track_length)
@@ -237,10 +189,10 @@ class AntsBand(object):
         # prepare_and_play("data/result.mid")
         return [self.midi_file, tracks_data]
 
-    def build_new_melody_track_extend(self, melody_track: MidiTrack, path: list, notes_messages: list):
+    def build_new_melody_track(self, melody_track: MidiTrack, path: list, notes_messages: list):
         path_counter = 0
         result_msg_sequence = []
-        for i, msg in enumerate(notes_messages):  # old message to msg
+        for i, msg in enumerate(notes_messages):
             old_on_msg = msg[0]
             old_off_msg = msg[1]
             if path_counter < len(path):
@@ -283,7 +235,6 @@ class AntsBand(object):
             expansion_part = expansion_part*(track_length-1)
             self.midi_file.tracks[i][notes_end_index:notes_end_index] = expansion_part  # wstawienie za oryginalną ścieżkę części rozszerzającej
 
-
     def start_divide_and_extend(self, split: int, track_length: int, not_selected_paths: [int]):  # track_length określa liczbę fraz w finalnym utworze
         try:
             self.clocks_per_click = self.midi_file.tracks[0][0].clocks_per_click
@@ -307,7 +258,7 @@ class AntsBand(object):
             line_path, line_notes_messages, line_notes = self.ordered_phrases_to_single_path(phrase_paths, phrases_notes_messages, phrase_notes, order)
             # line_notes_messages = self.replicate_and_correct_time(line_notes_messages, track_length)  # Tymczasowe zaleczenie rozjechanych czasów - wymusza oryginalne timingi
             # utworzenie ścieżki
-            line_melody_track = self.build_new_melody_track_extend(self.midi_file.tracks[track_number], line_path, line_notes_messages)
+            line_melody_track = self.build_new_melody_track(self.midi_file.tracks[track_number], line_path, line_notes_messages)
             # # utworzenie pliku wynikowego przez podmianę ścieżek
             self.midi_file.tracks[track_number] = line_melody_track
             tracks_data.append({'track_number': track_number, 'line_path': line_path, 'line_notes': line_notes, 'line_melody_track': line_melody_track})
