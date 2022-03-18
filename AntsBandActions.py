@@ -49,7 +49,7 @@ def evaluate_melody(midi_result: MidiFile, track_data):
     denominator = midi_result.tracks[0][0].denominator
     notes_in_time_factor = calculate_notes_in_time(track_data, clocks_per_click, numerator, denominator)
     repeated_sequences_factor = check_notes_sequences_repetition(track_data)
-    base_notes_at_accents_factor = check_base_notes_at_accents(track_data, clocks_per_click, numerator, denominator)  # z tego chyba się zrezygnuje
+    # base_notes_at_accents_factor = check_base_notes_at_accents(track_data, clocks_per_click, numerator, denominator)  # z tego chyba się zrezygnuje
     cosonance_dissonance_factor = check_cosonance_dissonance(track_data)
     print("cosonance_dissonance_factor: ", cosonance_dissonance_factor)  # <0,1>
     print("repeated_sequences_factor", repeated_sequences_factor)  # <0,1> zazwyczaj. czasem może być > 1

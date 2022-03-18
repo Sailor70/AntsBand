@@ -11,9 +11,9 @@ class GraphACS(object):
         """
         self.matrix = cost_matrix
         self.N = N
+        self.sigma = sigma
         self.initial_pheromone = [[self.put_pheromone(i, j) for j in range(N)] for i in range(N)]
         self.pheromone = self.initial_pheromone
-        self.sigma = sigma
         # heuristic value
         self.eta = [[0 if i == j else 1 / cost_matrix[i][j] for j in range(N)] for i in range(N)]
 

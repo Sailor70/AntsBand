@@ -1,5 +1,4 @@
 import random
-# TODO eksperyment z odnoszeniem się do tabu
 
 class Graph(object):
     def __init__(self, cost_matrix: list, rank: int, sigma: float):
@@ -38,7 +37,7 @@ class ACO(object):
         self.ant_count = ant_count
         self.generations = generations
         self.update_strategy = strategy
-        # self.divider = 1  # TODO do tworzenia krótkich, powtarzalnych melodii
+        # self.divider = 1  #  eksperymentalnie - do tworzenia krótkich, powtarzalnych melodii
 
     def _update_pheromone(self, graph: Graph, ants: list):
         for i, row in enumerate(graph.pheromone):
@@ -103,7 +102,7 @@ class _Ant(object):
             try:
                 self.allowed.index(i)  # sprawdzenie czy lista dozwolonych węzłów zawiera i-ty
                 probabilities[i] = self.graph.pheromone[self.current][i] ** self.colony.alpha * \
-                    self.eta[self.current][i] ** self.colony.beta / denominator  # TODO Gdzieś tutaj jakaś reguła że jeśli węzeł już był w tabu to prawdopodobieństwa przejścia jest mniejsze
+                    self.eta[self.current][i] ** self.colony.beta / denominator
             except ValueError:
                 pass  # nie rób nic
         # wybierz następny węzeł przez ruletkę prawdopodobieństwa
