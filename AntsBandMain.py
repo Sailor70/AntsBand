@@ -71,15 +71,8 @@ class AntsBand(object):
         # plot(notes, path)  # wykres
         return path
 
-    def quantizeRound(self, value):
-        # print(self.clocks_per_click)
-        # print(value, " -> ", self.clocks_per_click * round(value / self.clocks_per_click))
-        # jakaś reguła że jak value < 16 to nie daje 0, ale wtedy dalsza część się rozjedzie
-        # if value < 8:
-        #     return int(4 * round(value / 4))
-        # else:
-        # TODO poprawiona kwantyzacja
-        return int(self.clocks_per_click * round(value / self.clocks_per_click))  # przy tym tracimy krótkie dźwięki
+    def quantizeRound(self, value):  # obcina dźwięki krótsze niż self.clocks_per_click/2 ?
+        return int(self.clocks_per_click * round(value / self.clocks_per_click))
 
     def start(self):
         try:
@@ -180,8 +173,7 @@ class AntsBand(object):
             # plot(line_notes, line_path)  # sumaryczny wykres dla złożonych w całość fraz
             # utworzenie ścieżki
             line_melody_track = self.build_new_melody_track(self.midi_file.tracks[track_number], line_path, line_notes_messages)
-            # TODO ta funkcja (up) bierze stare eventy z midi_file.track więc timing będzie ten sam co w pliku wejściowym
-            # # utworzenie pliku wynikowego przez podmianę ścieżek
+            # utworzenie pliku wynikowego przez podmianę ścieżek
             self.midi_file.tracks[track_number] = line_melody_track
             tracks_data.append({'track_number': track_number, 'line_path': line_path, 'line_notes': line_notes, 'line_melody_track': line_melody_track})
 
@@ -192,6 +184,8 @@ class AntsBand(object):
     def build_new_melody_track(self, melody_track: MidiTrack, path: list, notes_messages: list):
         path_counter = 0
         result_msg_sequence = []
+        time_counter = 0
+        time_values = []
         for i, msg in enumerate(notes_messages):
             old_on_msg = msg[0]
             old_off_msg = msg[1]
@@ -203,8 +197,16 @@ class AntsBand(object):
                     result_msg_sequence.append(Message('note_off', channel=old_off_msg.channel, note=new_off_msg.note, velocity=new_off_msg.velocity, time=old_off_msg.time))
                 else:
                     result_msg_sequence.append(Message('note_on', channel=old_on_msg.channel, note=new_on_msg.note, velocity=new_on_msg.velocity, time=self.quantizeRound(new_on_msg.time)))
+                    # result_msg_sequence.append(Message('note_on', channel=old_on_msg.channel, note=new_on_msg.note, velocity=new_on_msg.velocity, time=new_on_msg.time))
+                    time_counter += new_on_msg.time
+                    time_values.append(new_on_msg.time)
                     result_msg_sequence.append(Message('note_on', channel=old_off_msg.channel, note=new_off_msg.note, velocity=new_off_msg.velocity, time=self.quantizeRound(new_off_msg.time)))
+                    # result_msg_sequence.append(Message('note_on', channel=old_off_msg.channel, note=new_off_msg.note, velocity=new_off_msg.velocity, time=new_off_msg.time))
+                    time_counter += new_off_msg.time
+                    time_values.append(new_off_msg.time)
                 path_counter += 1
+        # if not self.keep_old_timing:
+        #     result_msg_sequence = self.quantize_track(result_msg_sequence, time_values, time_counter)
         notes_messages_detected = False
         for i, msg in enumerate(melody_track):  # kopiowanie starych settings messegów do nowego tracka
             if msg.type != 'note_on' and msg.type != 'note_off' and not notes_messages_detected:
@@ -214,6 +216,26 @@ class AntsBand(object):
             elif msg.type == 'note_on':
                 notes_messages_detected = True
         return MidiTrack(result_msg_sequence)
+
+    def quantize_track(self, msg_sequence: list, time_list: list, time_counter: int):  # gra bardzo sztywno i robi pauzy
+        # TODO trzeba unaturalnić czasy i dopasować sumaryczną długość do time_sum
+        tact_length = self.clocks_per_click * self.midi_file.tracks[0][0].numerator * self.midi_file.tracks[0][0].denominator
+        time_sum = sum(time_list)
+        corrected_time_list = copy.deepcopy(time_list)
+        for i, time_value in enumerate(corrected_time_list):
+            corrected_time_list[i] = int(self.clocks_per_click * np.ceil(time_value / self.clocks_per_click))
+            if corrected_time_list[i] == 0:
+                corrected_time_list[i] = self.clocks_per_click
+        corrected_time_list[0] = 0  # pierwsza nuta bez pauzy
+        # corrected_time_list = [4 if i < 4 else i for i in corrected_time_list]  # najmnieje czasy to 4
+        corrected_time_sum = sum(corrected_time_list)
+        error = sum(corrected_time_list) - sum(time_list)
+        last_tact_time = time_counter % tact_length
+        time_to_add = tact_length - last_tact_time + error
+        # while time_to_add != 0:
+        for j, msg in enumerate(msg_sequence):
+            msg_sequence[j].time = corrected_time_list[j]
+        return msg_sequence
 
     def extend_unedited_paths(self, not_selected_paths: [int], track_length: int):  # zawiera też korekcję czasu
         tact_length = self.clocks_per_click * self.midi_file.tracks[0][0].numerator * self.midi_file.tracks[0][0].denominator
@@ -233,7 +255,7 @@ class AntsBand(object):
             expansion_part = copy.deepcopy(notes_messages)
             expansion_part[0].time += time_to_add  # dodanie brakującego czasu do pierwszego eventu kolejnego powtórzenia ścieżki
             expansion_part = expansion_part*(track_length-1)
-            self.midi_file.tracks[i][notes_end_index:notes_end_index] = expansion_part  # wstawienie za oryginalną ścieżkę części rozszerzającej
+            self.midi_file.tracks[i][notes_end_index:notes_end_index] = expansion_part  # wstawienie po oryginalnej ścieżce części rozszerzającej
 
     def start_divide_and_extend(self, split: int, track_length: int, not_selected_paths: [int]):  # track_length określa liczbę fraz w finalnym utworze
         try:
@@ -270,11 +292,11 @@ class AntsBand(object):
 
 if __name__ == '__main__':
     antsBand = AntsBand(midi_file=MidiFile('data/theRockingAntDrums.mid', clip=True), tracks_numbers=[2, 3],
-                        keep_old_timing=True, result_track_length=1, algorithm_type=0, ant_count=10, generations=10,
+                        keep_old_timing=False, result_track_length=1, algorithm_type=0, ant_count=10, generations=10,
                         alpha=1.0, beta=5, rho=0.9, q=1, phi=0.1, q_zero=0.9, sigma=10.0)
     # antsBand.start()
     # midi_result, tracks_data = antsBand.start_and_divide(4)
-    midi_result, tracks_data = antsBand.start_and_extend(3, [4])
-    # midi_result, tracks_data = antsBand.start()
-    print("Eval result: ", evaluate_melody(midi_result, tracks_data[1]))
-    calculate_similarity(midi_result, tracks_data[1], MidiFile('data/theRockingAntDrums.mid', clip=True))
+    # midi_result, tracks_data = antsBand.start_and_extend(3, [4])
+    midi_result, tracks_data = antsBand.start()
+    # print("Eval result: ", evaluate_melody(midi_result, tracks_data[1]))
+    # calculate_similarity(midi_result, tracks_data[1], MidiFile('data/theRockingAntDrums.mid', clip=True))
