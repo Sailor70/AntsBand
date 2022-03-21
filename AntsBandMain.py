@@ -148,7 +148,7 @@ class AntsBand(object):
             line_path.extend(phrase_paths[i])
         return [line_path, line_notes_messages, line_notes]
 
-    def start_and_divide(self, split: int):
+    def start_and_divide(self, split: int, mix_phrases: bool):
         # print(self.midi_file.tracks[0][0])
         try:
             self.clocks_per_click = self.midi_file.tracks[0][0].clocks_per_click
@@ -170,6 +170,8 @@ class AntsBand(object):
             # print(order)
             # print(phrase_paths)
             line_path, line_notes_messages, line_notes = self.ordered_phrases_to_single_path(phrase_paths, phrases_notes_messages, phrase_notes, order)
+            if not mix_phrases:
+                fake_notes, line_notes_messages = self.read_notes_from_track(self.midi_file.tracks[track_number])
             # plot(line_notes, line_path)  # sumaryczny wykres dla złożonych w całość fraz
             # utworzenie ścieżki
             line_melody_track = self.build_new_melody_track(self.midi_file.tracks[track_number], line_path, line_notes_messages)
@@ -257,7 +259,7 @@ class AntsBand(object):
             expansion_part = expansion_part*(track_length-1)
             self.midi_file.tracks[i][notes_end_index:notes_end_index] = expansion_part  # wstawienie po oryginalnej ścieżce części rozszerzającej
 
-    def start_divide_and_extend(self, split: int, track_length: int, not_selected_paths: [int]):  # track_length określa liczbę fraz w finalnym utworze
+    def start_divide_and_extend(self, split: int, track_length: int, not_selected_paths: [int], mix_phrases: bool):  # track_length określa liczbę fraz w finalnym utworze
         try:
             self.clocks_per_click = self.midi_file.tracks[0][0].clocks_per_click
         except AttributeError:
@@ -278,7 +280,9 @@ class AntsBand(object):
             phrases_notes_messages = phrases_notes_messages*track_length  # TODO tu brakuje korekcji czasu
             random.shuffle(order)
             line_path, line_notes_messages, line_notes = self.ordered_phrases_to_single_path(phrase_paths, phrases_notes_messages, phrase_notes, order)
-            # line_notes_messages = self.replicate_and_correct_time(line_notes_messages, track_length)  # Tymczasowe zaleczenie rozjechanych czasów - wymusza oryginalne timingi
+            if not mix_phrases:
+                fake_notes, line_notes_messages = self.read_notes_from_track(self.midi_file.tracks[track_number])
+                line_notes_messages = self.replicate_and_correct_time(line_notes_messages, track_length)
             # utworzenie ścieżki
             line_melody_track = self.build_new_melody_track(self.midi_file.tracks[track_number], line_path, line_notes_messages)
             # # utworzenie pliku wynikowego przez podmianę ścieżek

@@ -27,6 +27,8 @@ class MainWindow:
         self.instruments = []
         self.keep_old_timing = BooleanVar()
         self.keep_old_timing.set(True)
+        self.mix_phrases = BooleanVar()
+        self.mix_phrases.set(False)
         self.split_tracks = BooleanVar()
         self.split_tracks.set(False)
         self.algorithm_var = IntVar()
@@ -52,7 +54,8 @@ class MainWindow:
         vcmdFloat = (master.register(self.validateFloat), '%d', '%i', '%P', '%s', '%S', '%v', '%V', '%W')
         self.track_length_entry = Entry(master, text='Długość utworu', validate="key", validatecommand=vcmdInt, width=8)
         self.keep_timing_checkbox = Checkbutton(master, text='Zachowaj timing', variable=self.keep_old_timing)
-        self.split_tracks_checkbox = Checkbutton(master, text='Podziel ścieżki', variable=self.split_tracks)
+        self.mix_phrases_checkbox = Checkbutton(master, text='Mieszaj podział', variable=self.mix_phrases)
+        self.split_tracks_checkbox = Checkbutton(master, text='Podziel ścieżki', variable=self.split_tracks, command=lambda: self.split_tracks_change())
         self.algorithm_label = Label(master, text="Algorytm: ", font="Raleway")
         self.split_entry = Entry(master, text='Liczba części', validate="key", validatecommand=vcmdInt, width=8)
         self.as_radio_btn = Radiobutton(self.master, text='AS', variable=self.algorithm_var, value=0, command=lambda: self.algorithm_change())
@@ -83,9 +86,10 @@ class MainWindow:
         self.browse_btn.grid(row=0, column=0)
         self.track_length.grid(row=2, column=0)
         self.track_length_entry.grid(row=2, column=1)
+        self.keep_timing_checkbox.grid(row=2, column=2)
         self.split_tracks_checkbox.grid(row=3, column=0)
         self.split_entry.grid(row=3, column=1)
-        self.keep_timing_checkbox.grid(row=3, column=2)
+        self.mix_phrases_checkbox.grid(row=3, column=2)
         self.algorithm_label.grid(row=4, column=0)
         self.as_radio_btn.grid(row=4, column=1, sticky='ew')
         self.acs_radio_btn.grid(row=4, column=2, sticky='ew')
@@ -144,6 +148,7 @@ class MainWindow:
         q_zero_tip.bind_widget(self.q_zero, balloonmsg="Współczynnik chciwości")
         sigma_tip.bind_widget(self.sigma, balloonmsg="feromon inicjalny")
 
+        self.mix_phrases_checkbox["state"] = "disabled"
         self.start_btn["state"] = "disabled"
         self.phi["state"] = "disabled"
         self.q_zero["state"] = "disabled"
@@ -183,6 +188,12 @@ class MainWindow:
             self.phi["state"] = "normal"
             self.q_zero["state"] = "normal"
 
+    def split_tracks_change(self):
+        if self.split_tracks.get():
+            self.mix_phrases_checkbox["state"] = "normal"
+        else:
+            self.mix_phrases_checkbox["state"] = "disabled"
+
     def start_ants_band(self):
         selected_paths = []
         not_selected_paths = []
@@ -204,9 +215,9 @@ class MainWindow:
             start_time = time.time()
             if self.split_tracks.get():
                 if int(self.track_length_entry.get()) > 1:
-                        midi_result, tracks_data = ants_band.start_divide_and_extend(int(self.split_entry.get()), int(self.track_length_entry.get()), not_selected_paths)
+                        midi_result, tracks_data = ants_band.start_divide_and_extend(int(self.split_entry.get()), int(self.track_length_entry.get()), not_selected_paths, bool(self.mix_phrases.get()))
                 else:
-                    midi_result, tracks_data = ants_band.start_and_divide(int(self.split_entry.get()))
+                    midi_result, tracks_data = ants_band.start_and_divide(int(self.split_entry.get()), bool(self.mix_phrases.get()))
             else:
                 if int(self.track_length_entry.get()) > 1:
                     midi_result, tracks_data = ants_band.start_and_extend(int(self.track_length_entry.get()), not_selected_paths)
