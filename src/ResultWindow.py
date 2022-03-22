@@ -44,6 +44,7 @@ class ResultWindow:
         self.execution_time_label.grid(row=3, column=2, sticky='n')
         self.similarity_label.grid(row=4, column=0, columnspan=3, sticky='n')
 
+        self.midi_result.save("./data/" + self.file_name)
         self.init_radio_buttons()
         self.print_plot()
         self.evaluate_melody()
@@ -102,7 +103,6 @@ class ResultWindow:
         self.is_paused = False
 
     def play_pause(self):
-        self.midi_result.save("data/" + self.file_name)
         self.refresh()
         if not self.is_playing:
             if self.is_paused:
@@ -112,9 +112,9 @@ class ResultWindow:
                 self.is_paused = False
             else:
                 self.play_pause_btn.config(text="Pauza")
-                mixer.music.load("data/" + self.file_name)
+                mixer.music.load("./data/" + self.file_name)
                 mixer.music.play()
-                # threading.Thread(target=prepare_and_play("data/" + self.file_name)).start()
+                # threading.Thread(target=prepare_and_play("./data/" + self.file_name)).start()
                 self.is_playing = True
         else:
             # pause_music()

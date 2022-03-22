@@ -96,8 +96,8 @@ class AntsBand(object):
             self.midi_file.tracks[track_number] = line_melody_track
             tracks_data.append({'track_number': track_number, 'line_path': line_path, 'line_notes': line_notes, 'line_melody_track': line_melody_track})
 
-        # self.midi_file.save("data/result.mid")
-        # prepare_and_play("data/result.mid")
+        # self.midi_file.save("./data/result.mid")
+        # prepare_and_play("./data/result.mid")
         return [self.midi_file, tracks_data]
 
     def start_and_extend(self, track_length: int, not_selected_paths: [int]):
@@ -119,8 +119,8 @@ class AntsBand(object):
             self.midi_file.tracks[track_number] = line_melody_track
             tracks_data.append({'track_number': track_number, 'line_path': line_path, 'line_notes': line_notes, 'line_melody_track': line_melody_track})
         self.extend_unedited_paths(not_selected_paths, track_length)
-        # self.midi_file.save("data/result.mid")
-        # prepare_and_play("data/result.mid")
+        # self.midi_file.save("./data/result.mid")
+        # prepare_and_play("./data/result.mid")
         return [self.midi_file, tracks_data]
 
     def replicate_and_correct_time(self, line_notes_messages: list, track_length):
@@ -183,8 +183,8 @@ class AntsBand(object):
             self.midi_file.tracks[track_number] = line_melody_track
             tracks_data.append({'track_number': track_number, 'line_path': line_path, 'line_notes': line_notes, 'line_melody_track': line_melody_track})
 
-        self.midi_file.save("data/result.mid")
-        # prepare_and_play("data/result.mid")
+        # self.midi_file.save("./data/result.mid")
+        # prepare_and_play("./data/result.mid")
         return [self.midi_file, tracks_data]
 
     def build_new_melody_track_from_original(self, melody_track: MidiTrack, path: list, notes_messages: list):
@@ -308,16 +308,16 @@ class AntsBand(object):
             self.midi_file.tracks[track_number] = line_melody_track
             tracks_data.append({'track_number': track_number, 'line_path': line_path, 'line_notes': line_notes, 'line_melody_track': line_melody_track})
         self.extend_unedited_paths(not_selected_paths, track_length)
-        self.midi_file.save("data/result.mid")
-        # prepare_and_play("data/result.mid")
+        # self.midi_file.save("./data/result.mid")
+        # prepare_and_play("./data/result.mid")
         return [self.midi_file, tracks_data]
 
 
 if __name__ == '__main__':
-    # antsBand = AntsBand(midi_file=MidiFile('data/theRockingAntDrums.mid', clip=True), tracks_numbers=[2, 3],
+    # antsBand = AntsBand(midi_file=MidiFile('./data/theRockingAntDrums.mid', clip=True), tracks_numbers=[2, 3],
     #                     keep_old_timing=False, result_track_length=1, algorithm_type=0, ant_count=10, generations=10,
     #                     alpha=1.0, beta=5, rho=0.9, q=1, phi=0.1, q_zero=0.9, sigma=10.0)
-    antsBand = AntsBand(midi_file=MidiFile('data/theDreamingAnt.mid', clip=True), tracks_numbers=[2, 3],
+    antsBand = AntsBand(midi_file=MidiFile('./data/theDreamingAnt.mid', clip=True), tracks_numbers=[2, 3],
                         keep_old_timing=True, result_track_length=1, algorithm_type=0, ant_count=10, generations=10,
                         alpha=1.0, beta=5, rho=0.9, q=1, phi=0.1, q_zero=0.9, sigma=10.0)
     # antsBand.start()
@@ -325,4 +325,4 @@ if __name__ == '__main__':
     # midi_result, tracks_data = antsBand.start_and_extend(3, [4])
     midi_result, tracks_data = antsBand.start()
     print("Eval result: ", evaluate_melody(midi_result, tracks_data[1]))
-    calculate_similarity(midi_result, tracks_data[1], MidiFile('data/theDreamingAnt.mid', clip=True))
+    calculate_similarity(midi_result, tracks_data[1], MidiFile('./data/theDreamingAnt.mid', clip=True))

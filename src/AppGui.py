@@ -205,7 +205,7 @@ class MainWindow:
         if len(selected_paths) < 1:
             messagebox.showerror('Nieprawidłowa wartość', 'Wybierz przynajmniej jedną ścieżkę')
             return 0
-        # ants_band = AntsBand(MidiFile('data/theRockingAnt.mid', clip=True), [2, 3])
+        # ants_band = AntsBand(MidiFile('./data/theRockingAnt.mid', clip=True), [2, 3])
         ants_band = AntsBand(midi_file=copy.deepcopy(self.midi_input), tracks_numbers=selected_paths, keep_old_timing=self.keep_old_timing.get(),
                              result_track_length=self.track_length_entry.get(), algorithm_type=self.algorithm_var.get(),
                              ant_count=int(self.ant_count_entry.get()), generations=int(self.generations.get()), alpha=float(self.alpha.get()),

@@ -47,8 +47,8 @@ def prepare_and_play(file):
 
     try:
         # Podaje nazwę pliku z dysku do odtworzenia
-        # play_music("data/result.mid")
-        # play_music("data/simple-Am-melody.mid")
+        # play_music("./data/result.mid")
+        # play_music("./data/simple-Am-melody.mid")
         play_music(file)
     except KeyboardInterrupt:
         # if user hits Ctrl/C then exit
@@ -59,4 +59,4 @@ def prepare_and_play(file):
 
 
 # if __name__ == '__main__':
-#     prepare_and_play("data/result.mid")
+#     prepare_and_play("./data/result.mid")
