@@ -6,7 +6,7 @@ from pygame import mixer
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from tkinter import messagebox
 
-from AntsBandActions import *
+from AntsBandService import *
 
 
 class ResultWindow:

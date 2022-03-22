@@ -6,8 +6,8 @@ from tkinter.filedialog import askopenfile
 import os
 from tkinter.tix import Balloon
 from tkinter import messagebox
+from mido import MidiFile
 
-from AntsBandActions import *
 from ResultWindow import ResultWindow
 from AntsBandMain import AntsBand
 

@@ -7,7 +7,7 @@ from mido import MidiFile
 from aco import ACO, Graph
 from acs import ACS, GraphACS
 from midiPlayer import prepare_and_play
-from AntsBandActions import plot, evaluate_melody, calculate_similarity
+from AntsBandService import plot, evaluate_melody, calculate_similarity
 
 
 class AntsBand(object):
