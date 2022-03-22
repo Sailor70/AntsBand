@@ -43,8 +43,10 @@ class AntsBand(object):
         for i, msg in enumerate(melody_track):  # przeanalizuj każdy event midi z ścieżki
             if msg.type == 'note_on':  # interesują nas tylko eventy dla nut
                 notes.append(msg.note)
-                notes_messages.append([melody_track[i], melody_track[i + 1]])  # zakładam że w melodii zawsze po note_on jest odpowiadający jej note_off
-                # błąd - jak są dwudźwięki to się nie sprawdzi bo są czasem 2x note_on po sobie
+                # ręcznie wygenerowany note_off ze względu na możliwość wystąpienia po note_on drugiego note_on lub innego control_change
+                notes_messages.append([msg,
+                                       Message('note_off', channel=msg.channel, note=msg.note, velocity=msg.velocity, time=melody_track[i+1].time)])
+                # notes_messages.append([melody_track[i], melody_track[i + 1]])  # zakłada że w melodii zawsze po note_on jest odpowiadający jej note_off
         return [notes, notes_messages]
 
     def get_new_aco_melody_for_instrument(self, notes: list):
@@ -65,7 +67,7 @@ class AntsBand(object):
             path, cost = aco.solve(graph)
             print('cost: {}, path: {}'.format(cost, path))
         else:
-            acs = ACS(self.ant_count, self.generations, self.alpha, self.beta, self.rho, phi=self.phi, q_zero=self.q_zero)  # self.phi, self.q_zero
+            acs = ACS(self.ant_count, self.generations, self.alpha, self.beta, self.rho, phi=self.phi, q_zero=self.q_zero)
             graph = GraphACS(cost_matrix, rank, self.sigma)
             path, cost = acs.solve(graph)
             print('cost2: {}, path2: {}'.format(cost, path))
@@ -191,13 +193,12 @@ class AntsBand(object):
             if msg.type == 'note_on' and (path_counter < len(path)):
                 new_on_msg = notes_messages[path[path_counter]][0]
                 new_off_msg = notes_messages[path[path_counter]][1]
-                # utwórz nowy message, ale daj odpowiedni czas - czasy trwania nut pozostają z oryginalnego utworu
                 if self.keep_old_timing:
                     melody_track[i] = Message('note_on', channel=msg.channel, note=new_on_msg.note, velocity=new_on_msg.velocity, time=msg.time)
-                    melody_track[i + 1] = Message('note_off', channel=melody_track[i + 1].channel, note=new_off_msg.note, velocity=new_off_msg.velocity,time=melody_track[i + 1].time)
+                    melody_track[i + 1] = Message('note_off', channel=msg.channel, note=new_off_msg.note, velocity=new_off_msg.velocity,time=melody_track[i + 1].time)
                 else:
                     melody_track[i] = Message('note_on', channel=msg.channel, note=new_on_msg.note, velocity=new_on_msg.velocity, time=self.quantizeRound(new_on_msg.time))
-                    melody_track[i + 1] = Message('note_off', channel=melody_track[i+1].channel, note=new_off_msg.note, velocity=new_off_msg.velocity, time=self.quantizeRound(new_off_msg.time))
+                    melody_track[i + 1] = Message('note_off', channel=msg.channel, note=new_off_msg.note, velocity=new_off_msg.velocity, time=self.quantizeRound(new_off_msg.time))
                 path_counter += 1
         return melody_track
 

@@ -91,14 +91,6 @@ class Ant(object):
         for i in range(self.graph.N - 1):
             self.select_next_node()
             self.update_pheromone_local()
-        self.update_last()
-
-    def update_last(self):
-        last = self.tour[0]
-        self.tour.append(last)
-        self.total_cost += self.graph.matrix[self.current][last]
-        self.current = last
-        self.update_pheromone_local()
 
     def update_pheromone_local(self):
         i = self.tour[-1]

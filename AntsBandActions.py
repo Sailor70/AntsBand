@@ -113,7 +113,10 @@ def calculate_notes_in_time(track_data, clocks_per_click, numerator, denominator
     print("eval_notes_time: ", eval_notes_time)
     # print("notes_counter ", notes_counter)
     # print("len(tracks_data['line_path'])", len(tracks_data['line_path']))
-    return sum(eval_notes_time) / (notes_counter*2)
+    if notes_counter != 0:
+        return sum(eval_notes_time) / (notes_counter*2)
+    else:
+        return 0
 
 def check_notes_sequences_repetition(track_data):  # mierzy powtarzalność sekwencji dźwięków w melodi
     notes = [track_data['line_notes'][track_data['line_path'][i]] for i in range(len(track_data['line_path']))]
