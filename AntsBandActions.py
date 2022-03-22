@@ -37,10 +37,11 @@ def calculate_similarity(midi_result: MidiFile, track_data, midi_input: MidiFile
                 similar_notes += 1
             if msg.time == result_track[i].time:
                 similar_times += 1
-    # print("similar notes", similar_notes)
-    # print("similar notes factor", str(similar_notes/all_notes))
-    # print("similar_times", similar_times)
-    # print("all_notes", all_notes)
+    print("similar notes", similar_notes)
+    print("similar notes factor", str(similar_notes/all_notes))
+    print("similar_times", similar_times)
+    print("similar_times factor", str(similar_times/all_notes))
+    print("all_notes", all_notes)
     return [similar_notes/all_notes, similar_times/all_notes]
 
 def evaluate_melody(midi_result: MidiFile, track_data):
@@ -117,29 +118,22 @@ def calculate_notes_in_time(track_data, clocks_per_click, numerator, denominator
 def check_notes_sequences_repetition(track_data):  # mierzy powtarzalność sekwencji dźwięków w melodi
     notes = [track_data['line_notes'][track_data['line_path'][i]] for i in range(len(track_data['line_path']))]
     print(notes)
-    phrase_occurances = 1
-    # max_phrase_occurances = 1
+    phrase_occurances = 0
+    max_phrase_occurances = 0
     minrun = 4   # minimalna długość szukanej frazy
     lendata = len(notes)
     for runlen in range(minrun, lendata // 2):  # iteruje po długościach paternu od 4 po połowy
-        i = 0
         for i in range(0, lendata - runlen):  # sprawdza wszystkie pozycje dla frazy szukanej długości
             s1 = notes[i:i + runlen]
             j = i+runlen
             while j < lendata - runlen:  # znajduje wszystkie inne frazy za aktualnie szukaną
                 s2 = notes[j:j+runlen]
-                # max_phrase_occurances += 1
+                max_phrase_occurances += 1
                 if s1 == s2:
                     # print(s1, " at ", j)
-                    phrase_occurances += 1  # może jakieś wagi wprowadzić dla fraz różnej długości?
-                    j += runlen
-                else:
-                    j += 1
-    # print("max_phrase_occurances: ", max_phrase_occurances)  # czym więcej phrase_occurances tym mniejszy max_phrase_occurances - nie jest miarodajne
+                    phrase_occurances += 1
+                j += 1
+    print("max_phrase_occurances: ", max_phrase_occurances)
     print("phrase_occurances: ", phrase_occurances)
     print("lendata: ", lendata)
-    factor = phrase_occurances/lendata
-    if factor > 1.0:
-        return 1.0
-    else:
-        return factor
+    return phrase_occurances/max_phrase_occurances  # linia melodyczna złożona z dźwięków jednej wysokości (tych samych) ma factor 1
