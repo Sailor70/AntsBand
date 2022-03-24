@@ -1,6 +1,6 @@
 import random
 
-class Graph(object):
+class GraphAS(object):
     def __init__(self, cost_matrix: list, rank: int, sigma: float):
         """
         :param cost_matrix: macierz kosztów przejscia - odległości między dźwiękami - większa odległość = większy koszt
@@ -39,7 +39,7 @@ class ACO(object):
         self.update_strategy = strategy
         # self.divider = 1  #  eksperymentalnie - do tworzenia krótkich, powtarzalnych melodii
 
-    def _update_pheromone(self, graph: Graph, ants: list):
+    def _update_pheromone(self, graph: GraphAS, ants: list):
         for i, row in enumerate(graph.pheromone):
             for j, col in enumerate(row):
                 graph.pheromone[i][j] *= 1 - self.rho  # 1-self.rho
@@ -47,7 +47,7 @@ class ACO(object):
                     graph.pheromone[i][j] += ant.pheromone_delta[i][j]
 
     # noinspection PyProtectedMember
-    def solve(self, graph: Graph):
+    def solve(self, graph: GraphAS):
         """
         :param graph:
         """
@@ -76,7 +76,7 @@ class ACO(object):
 
 
 class _Ant(object):
-    def __init__(self, aco: ACO, graph: Graph):
+    def __init__(self, aco: ACO, graph: GraphAS):
         self.colony = aco
         self.graph = graph
         self.total_cost = 0.0

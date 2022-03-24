@@ -4,8 +4,8 @@ import random
 import numpy as np
 from mido import Message, MidiTrack
 from mido import MidiFile
-from aco import ACO, Graph
-from acs import ACS, GraphACS
+from AntSystem import ACO, GraphAS
+from AntColonySystem import ACS, GraphACS
 from midiPlayer import prepare_and_play
 from AntsBandService import plot, evaluate_melody, calculate_similarity
 
@@ -63,7 +63,7 @@ class AntsBand(object):
             # ACO(1, 1, 5.0, 0, 0.01, 1, 2) - ustawienie do odtworzenia orginalnego
             # utworu ( ale tylko gdy mrówka zaczenie w dobrym miejscu - w nucie początkowej ? - to zagra tak samo)
             # aco = ACO(10, 100, 1.0, 8.0, 0.5, 10, 2)
-            graph = Graph(cost_matrix, rank, self.sigma)
+            graph = GraphAS(cost_matrix, rank, self.sigma)
             path, cost = aco.solve(graph)
             print('cost: {}, path: {}'.format(cost, path))
         else:
