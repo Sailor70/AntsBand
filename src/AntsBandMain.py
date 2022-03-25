@@ -11,10 +11,12 @@ from AntsBandService import plot, evaluate_melody, calculate_similarity
 
 
 class AntsBand(object):
-    def __init__(self, midi_file: MidiFile, tracks_numbers: [int], keep_old_timing: bool, result_track_length: int, algorithm_type: int,
-                 ant_count: int, generations: int, alpha: float, beta: float, rho: float, q: int, phi: float, q_zero: float, sigma: float):
-        self.midi_file = midi_file  # strings podawać i tworzyć objekt
-        self.tracks_numbers = tracks_numbers  # tracksNumbers  # tablica + pętle do tego
+    def __init__(self, midi_file: MidiFile, tracks_numbers: [int], keep_old_timing: bool, result_track_length: int,
+                 algorithm_type: int, ant_count: int, generations: int, alpha: float, beta: float, rho: float,
+                 q: int, phi: float, q_zero: float, sigma: float):
+
+        self.midi_file = midi_file
+        self.tracks_numbers = tracks_numbers
         self.available_distances = [0.1, 0.5, 1, 5, 10, 100]
         self.keep_old_timing = keep_old_timing
         self.result_track_length = result_track_length
@@ -43,10 +45,12 @@ class AntsBand(object):
         for i, msg in enumerate(melody_track):  # przeanalizuj każdy event midi z ścieżki
             if msg.type == 'note_on':  # interesują nas tylko eventy dla nut
                 notes.append(msg.note)
-                # ręcznie wygenerowany note_off ze względu na możliwość wystąpienia po note_on drugiego note_on lub innego control_change
-                notes_messages.append([msg,
-                                       Message('note_off', channel=msg.channel, note=msg.note, velocity=msg.velocity, time=melody_track[i+1].time)])
-                # notes_messages.append([melody_track[i], melody_track[i + 1]])  # zakłada że w melodii zawsze po note_on jest odpowiadający jej note_off
+                j = i+1
+                while melody_track[j].type != 'note_off' or melody_track[j].note != msg.note:
+                    j += 1
+                notes_messages.append([msg,melody_track[j]])
+                # notes_messages.append([msg,
+                #                        Message('note_off', channel=msg.channel, note=msg.note, velocity=msg.velocity, time=melody_track[i+1].time)])
         return [notes, notes_messages]
 
     def get_new_aco_melody_for_instrument(self, notes: list):
@@ -70,7 +74,7 @@ class AntsBand(object):
             acs = ACS(self.ant_count, self.generations, self.alpha, self.beta, self.rho, phi=self.phi, q_zero=self.q_zero)
             graph = GraphACS(cost_matrix, rank, self.sigma)
             path, cost = acs.solve(graph)
-            print('cost2: {}, path2: {}'.format(cost, path))
+            print('cost_acs: {}, path_acs: {}'.format(cost, path))
         # plot(notes, path)  # wykres
         return path
 
@@ -89,7 +93,6 @@ class AntsBand(object):
             line_notes, line_notes_messages = self.read_notes_from_track(self.midi_file.tracks[track_number])
             # ACO dla lini melodycznych
             line_path = self.get_new_aco_melody_for_instrument(line_notes)
-            # plot(line_notes, line_path)
             # utworzenie nowej ścieżki dla instrumentu
             line_melody_track = self.build_new_melody_track_from_original(self.midi_file.tracks[track_number], line_path, line_notes_messages)
             # utworzenie pliku wynikowego przez podmianę ścieżek

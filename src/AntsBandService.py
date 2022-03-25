@@ -33,10 +33,11 @@ def calculate_similarity(midi_result: MidiFile, track_data, midi_input: MidiFile
     for i, msg in enumerate(midi_input.tracks[track_number]):  # iteruje po tracku wejściowym bo on może być krótszy
         if msg.type == 'note_on' or msg.type == 'note_off':
             all_notes += 1
-            if msg.note == result_track[i].note:
-                similar_notes += 1
-            if msg.time == result_track[i].time:
-                similar_times += 1
+            if result_track[i].type == 'note_on' or result_track[i].type == 'note_off':
+                if msg.note == result_track[i].note:
+                    similar_notes += 1
+                if msg.time == result_track[i].time:
+                    similar_times += 1
     print("similar notes", similar_notes)
     print("similar notes factor", str(similar_notes/all_notes))
     print("similar_times", similar_times)
