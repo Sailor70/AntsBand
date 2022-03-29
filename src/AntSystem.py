@@ -19,8 +19,7 @@ class GraphAS(object):
 
 
 class ACO(object):
-    def __init__(self, ant_count: int, generations: int, alpha: float, beta: float, rho: float, q: int,
-                 strategy: int):
+    def __init__(self, ant_count: int, generations: int, alpha: float, beta: float, rho: float, q: int):
         """
         :param ant_count: liczba mrówek
         :param generations: liczba iteracji
@@ -28,7 +27,6 @@ class ACO(object):
         :param beta: ważność informacji heurystycznej
         :param rho: współczynnik odparowania śladu feromonowego
         :param q: intensywność feromonu - ilość uwalnianego feromonu
-        :param strategy: strategia aktualizacji śladu feromonowego. 0 - ant-cycle, 1 - ant-quality, 2 - ant-density
         """
         self.Q = q
         self.rho = rho
@@ -36,7 +34,6 @@ class ACO(object):
         self.alpha = alpha
         self.ant_count = ant_count
         self.generations = generations
-        self.update_strategy = strategy
         # self.divider = 1  #  eksperymentalnie - do tworzenia krótkich, powtarzalnych melodii
 
     def _update_pheromone(self, graph: GraphAS, ants: list):
@@ -60,7 +57,7 @@ class ACO(object):
                 for i in range(graph.rank - 1):
                     # for i in range(int((graph.rank - 1)/self.divider)):  # przejście po wszystkich węzłach
                     ant._select_next()
-                ant.total_cost += graph.matrix[ant.tabu[-1]][ant.tabu[0]]  # doliczenie przejścia z ostatniego węzła do początkowego - cykl hamiltona - czy to nam potrzebne? - chyba nie
+                # ant.total_cost += graph.matrix[ant.tabu[-1]][ant.tabu[0]]  # doliczenie przejścia z ostatniego węzła do początkowego - cykl hamiltona - czy to nam potrzebne? - chyba nie
                 if ant.total_cost < best_cost:
                     best_cost = ant.total_cost
                     best_solution = [] + ant.tabu
@@ -124,10 +121,4 @@ class _Ant(object):
         for _ in range(1, len(self.tabu)):
             i = self.tabu[_ - 1]
             j = self.tabu[_]
-            if self.colony.update_strategy == 1:  # ant-quality system
-                self.pheromone_delta[i][j] = self.colony.Q
-            elif self.colony.update_strategy == 2:  # ant-density system
-                # noinspection PyTypeChecker
-                self.pheromone_delta[i][j] = self.colony.Q / self.graph.matrix[i][j]
-            else:  # ant-cycle system
-                self.pheromone_delta[i][j] = self.colony.Q / self.total_cost
+            self.pheromone_delta[i][j] = self.colony.Q / self.total_cost

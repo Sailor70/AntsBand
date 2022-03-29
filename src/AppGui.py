@@ -169,11 +169,11 @@ class MainWindow:
             for msg in mid.tracks[i]:
                 if hasattr(msg, 'name'):
                     self.instruments.append(
-                        {'name': msg.name, 'id': i})  # potrzebujemy nazwę instrumentu i index ścieżki
+                        {'name': msg.name, 'id': i})  # nazwa instrumentu i index ścieżki
                     break
         # print(self.instruments)
         self.start_btn["state"] = "normal"
-        for j in range(len(self.instruments)):  # utworzenie checkboxów
+        for j in range(len(self.instruments)):  # utworzenie nowych checkboxów
             var = IntVar()
             c = Checkbutton(self.master, text=self.instruments[j]['name'], variable=var)
             self.paths_checkbox_dict[self.instruments[j]['id']] = var

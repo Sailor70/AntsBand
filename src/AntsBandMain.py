@@ -62,7 +62,7 @@ class AntsBand(object):
                 row.append(self.distance(notes[i], notes[j]))
             cost_matrix.append(row)
         if self.algorithm_type == 0:
-            aco = ACO(self.ant_count, self.generations, self.alpha, self.beta, self.rho, self.Q, 2)
+            aco = ACO(self.ant_count, self.generations, self.alpha, self.beta, self.rho, self.Q)
             # aco = ACO(10, 10, 1.0, 5, 0.9, 1, 2)
             # ACO(1, 1, 5.0, 0, 0.01, 1, 2) - ustawienie do odtworzenia orginalnego
             # utworu ( ale tylko gdy mrówka zaczenie w dobrym miejscu - w nucie początkowej ? - to zagra tak samo)

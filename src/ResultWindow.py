@@ -88,7 +88,6 @@ class ResultWindow:
     def refresh(self):
         self.master.update()
         self.master.after(1000, self.refresh)
-        # if check_if_playing():
         if mixer.music.get_busy():
             self.is_playing = True
         else:
