@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 from mido import MidiFile
+import scipy.signal as sig
 
 
 def plot(points, path: list):
@@ -43,25 +44,25 @@ def calculate_similarity(midi_result: MidiFile, track_data, midi_input: MidiFile
     print("similar_times", similar_times)
     print("similar_times factor", str(similar_times/all_notes))
     print("all_notes", all_notes)
+    # c = sig.correlate(midi_input.tracks[track_number], midi_result.tracks[track_number])
+    # print("correlate: ", c)
     return [similar_notes/all_notes, similar_times/all_notes]
 
 def evaluate_melody(midi_result: MidiFile, track_data):
     clocks_per_click = midi_result.tracks[0][0].clocks_per_click
     numerator = midi_result.tracks[0][0].numerator
-    denominator = midi_result.tracks[0][0].denominator
-    notes_in_time_factor = calculate_notes_in_time(track_data, clocks_per_click, numerator, denominator)
-    repeated_sequences_factor = check_notes_sequences_repetition(track_data)
-    # base_notes_at_accents_factor = check_base_notes_at_accents(track_data, clocks_per_click, numerator, denominator)  # z tego chyba się zrezygnuje
-    cosonance_dissonance_factor = check_cosonance_dissonance(track_data)
+    notes = [track_data['line_notes'][track_data['line_path'][i]] for i in range(len(track_data['line_path']))]  # nuty w kolejności na podstawie ścieżki
+    notes_in_time_factor = calculate_notes_in_time(track_data, clocks_per_click, numerator)
+    repeated_sequences_factor = check_notes_sequences_repetition(notes)
+    cosonance_dissonance_factor = check_cosonance_dissonance(notes)
     print("cosonance_dissonance_factor: ", cosonance_dissonance_factor)  # <0,1>
     print("repeated_sequences_factor", repeated_sequences_factor)  # <0,1> zazwyczaj. czasem może być > 1
     print("notes_in_time_factor", notes_in_time_factor)  # <0,1>
-    evaluation_result = 0.33 * notes_in_time_factor + 0.33 * repeated_sequences_factor + 0.33 * cosonance_dissonance_factor   # metoda ważonych kryteriów
+    evaluation_result = 0.33 * notes_in_time_factor + 0.33 * repeated_sequences_factor + 0.33 * cosonance_dissonance_factor   # metoda kryteriów ważonych
     return evaluation_result
 
 # liczy czy pomiędzy dźwiękami występuje kosonans, czy dysonans na podstawie interwałów
-def check_cosonance_dissonance(track_data):
-    notes = [track_data['line_notes'][track_data['line_path'][i]] for i in range(len(track_data['line_path']))]  # przenieść do evaluate_melody
+def check_cosonance_dissonance(notes):
     cosonance_intervals = [0, 3, 4, 5, 7, 8, 9, 12]  # konsonansy
     cosonances_counter = 0
     for i, prev_note in enumerate(notes, 1):
@@ -92,17 +93,15 @@ def check_base_notes_at_accents(track_data, clocks_per_click, numerator, denomin
                 # prev_msg = msg
     return notes_counter
 
-def calculate_notes_in_time(track_data, clocks_per_click, numerator, denominator):
+def calculate_notes_in_time(track_data, clocks_per_click, numerator):
     eval_notes_time = [0] * len(track_data['line_path'])
     time_counter = 0
     notes_counter = 0
-    # print(tracks_data['line_melody_track'])
     for i, msg in enumerate(track_data['line_melody_track']):
-        if hasattr(msg, 'time'):  # 'note_on' or msg.type == 'note_off'
+        if hasattr(msg, 'time'):
             time_counter += msg.time
-            # print(msg.time)
             if msg.type == 'note_on':
-                if time_counter % clocks_per_click == 0:  # jeśli mieści się w siatce nut (trafia w szesnastkę) - ale może lepiej w ćwierćnutę i na raz w takcie
+                if time_counter % clocks_per_click == 0:  # jeśli mieści się w siatce nut (trafia w szesnastkę)
                     eval_notes_time[notes_counter] += 1
                 if time_counter % (clocks_per_click * (numerator/2)) == 0:  # ósemka (nuta trafia w którąś z 1/8 taktu)
                 # if time_counter % (clocks_per_click * numerator) == 0:  # ćwierćnuta
@@ -119,14 +118,12 @@ def calculate_notes_in_time(track_data, clocks_per_click, numerator, denominator
     else:
         return 0
 
-def check_notes_sequences_repetition(track_data):  # mierzy powtarzalność sekwencji dźwięków w melodi
-    notes = [track_data['line_notes'][track_data['line_path'][i]] for i in range(len(track_data['line_path']))]
-    print(notes)
+def check_notes_sequences_repetition(notes):  # mierzy powtarzalność sekwencji dźwięków w melodi
     phrase_occurances = 0
     max_phrase_occurances = 0
     minrun = 4   # minimalna długość szukanej frazy
     lendata = len(notes)
-    for runlen in range(minrun, lendata // 2):  # iteruje po długościach paternu od 4 po połowy
+    for runlen in range(minrun, lendata // 2):  # iteruje po długościach paternu od 4 po połowy długości melodii
         for i in range(0, lendata - runlen):  # sprawdza wszystkie pozycje dla frazy szukanej długości
             s1 = notes[i:i + runlen]
             j = i+runlen
@@ -134,7 +131,6 @@ def check_notes_sequences_repetition(track_data):  # mierzy powtarzalność sekw
                 s2 = notes[j:j+runlen]
                 max_phrase_occurances += 1
                 if s1 == s2:
-                    # print(s1, " at ", j)
                     phrase_occurances += 1
                 j += 1
     print("max_phrase_occurances: ", max_phrase_occurances)
