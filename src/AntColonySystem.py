@@ -9,13 +9,12 @@ class GraphACS(object):
         :param N: liczba węzłów
         :param pheromone: globalny feromon
         """
-        self.matrix = cost_matrix
+        self.cost_matrix = cost_matrix
         self.N = N
         self.sigma = sigma
         self.initial_pheromone = [[self.put_pheromone(i, j) for j in range(N)] for i in range(N)]
         self.pheromone = self.initial_pheromone
-        # heuristic value
-        self.eta = [[0 if i == j else 1 / cost_matrix[i][j] for j in range(N)] for i in range(N)]
+        self.eta = [[0 if i == j else 1 / cost_matrix[i][j] for j in range(N)] for i in range(N)]  # informacja heurystyczna
 
     def put_pheromone(self, i: int, j: int):  # zainicjowanie śladu feromonowego zgodnie z oryginalną melodią
         if j == i+1:
@@ -39,7 +38,7 @@ class ACS(object):
 
         self.generations = generations
         self.ant_count = ant_count
-        self.alpha = alpha
+        self.alpha = alpha  # alpha = 1 gdy chcemy oryginalną forme algorytmu
         self.beta = beta
         self.rho = rho
         self.phi = phi
@@ -50,18 +49,17 @@ class ACS(object):
         best_solution = []
         for gen in range(self.generations):
             print('Generation ', gen)
-            ants = [Ant(self, graph) for i in range(self.ant_count)]
+            ants = [AntACS(self, graph) for i in range(self.ant_count)]
             for ant in ants:
-                ant.generate_tour()
+                ant.generate_path()
                 if ant.total_cost < best_cost:
                     best_cost = ant.total_cost
                     print('Best cost update: ', best_cost)
-                    best_solution = [] + ant.tour
-            self.update_pheromone(graph, ants, best_solution, best_cost)
+                    best_solution = [] + ant.tabu
+            self._update_global_pheromone(graph, best_solution, best_cost)
         return best_solution, best_cost
 
-    # Global update
-    def update_pheromone(self, graph: GraphACS, ants: list, best: list, lbest):
+    def _update_global_pheromone(self, graph: GraphACS, best: list, lbest):
         for i, row in enumerate(graph.pheromone):
             for j, _ in enumerate(row):
                 if self._edge_in_tour(i, j, best):
@@ -76,47 +74,38 @@ class ACS(object):
         return False
 
 
-class Ant(object):
+class AntACS(object):
     def __init__(self, aco: ACS, graph: GraphACS):
         self.aco = aco
         self.graph = graph
         self.total_cost = 0.0
         start = random.randint(0, graph.N - 1)
         self.current = start
-        self.tour = [start]
+        self.tabu = [start]
         self.unvisited = [i for i in range(graph.N)]
         self.unvisited.remove(start)
 
-    def generate_tour(self):
+    def generate_path(self):
         for i in range(self.graph.N - 1):
-            self.select_next_node()
-            self.update_pheromone_local()
+            selected = self._select_next_node()
+            self.unvisited.remove(selected)
+            self.tabu.append(selected)
+            self.total_cost += self.graph.cost_matrix[self.current][selected]
+            self.current = selected
+            self._update_pheromone_local()
 
-    def update_pheromone_local(self):
-        i = self.tour[-1]
-        j = self.tour[-2]
-        self.graph.pheromone[i][j] = (1 - self.aco.phi) * self.graph.pheromone[i][j] + self.aco.phi * \
-                                     self.graph.initial_pheromone[i][j]
-
-    def select_next_node(self):
-        selected = self._select_node()
-        self.unvisited.remove(selected)
-        self.tour.append(selected)
-        self.total_cost += self.graph.matrix[self.current][selected]
-        self.current = selected
-
-    def _select_node(self):
-        selected = -1
+    def _select_next_node(self):
+        selected = 0
         q = random.random()
-        if (q < self.aco.q_zero):
-            maxim = 0
+        if q <= self.aco.q_zero:  # eksploatacja
+            max_val = 0
             i = self.current
             for g in self.unvisited:
-                rule = (self.graph.pheromone[i][g] ** self.aco.alpha) * (self.graph.eta[i][g] ** self.aco.beta)
-                if rule > maxim:
-                    maxim = rule
+                val = (self.graph.pheromone[i][g] ** self.aco.alpha) * (self.graph.eta[i][g] ** self.aco.beta)
+                if val > max_val:
+                    max_val = val
                     selected = g
-        else:
+        else:  # eksploracja
             probabilities = self._calculate_probabilities()
             for i, probability in enumerate(probabilities):
                 q -= probability
@@ -136,3 +125,9 @@ class Ant(object):
     def _prob_aux(self, i: int):
         return self.graph.pheromone[self.current][i] ** self.aco.alpha * self.graph.eta[self.current][
             i] ** self.aco.beta
+
+    def _update_pheromone_local(self):
+        i = self.tabu[-1]  # ostatni element
+        j = self.tabu[-2]  # przedostatni element
+        self.graph.pheromone[i][j] = (1 - self.aco.phi) * self.graph.pheromone[i][j] + self.aco.phi * \
+                                     self.graph.initial_pheromone[i][j]

@@ -66,9 +66,9 @@ class AntAS(object):
         self.colony = aco
         self.graph = graph
         self.total_cost = 0.0
-        self.tabu = []  # lista tabu
+        self.tabu = []
         self.pheromone_delta = []  # lokalny przyrost feromonu
-        self.unvisited = [i for i in range(graph.N)]  # dozwolone węzły do wyboru jako następny
+        self.unvisited = [i for i in range(graph.N)]  # lista węzłów jeszcze nie odwiedzonych
         self.eta = [[0 if i == j else 1 / graph.cost_matrix[i][j] for j in range(graph.N)] for i in
                     range(graph.N)]  # informacja heurystyczna
         start = random.randint(0, graph.N - 1)  # rozpoczęcie z losowego węzła
