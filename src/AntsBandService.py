@@ -39,11 +39,11 @@ def calculate_similarity(midi_result: MidiFile, track_data, midi_input: MidiFile
                     similar_notes += 1
                 if msg.time == result_track[i].time:
                     similar_times += 1
-    print("similar notes", similar_notes)
-    print("similar notes factor", str(similar_notes/all_notes))
-    print("similar_times", similar_times)
-    print("similar_times factor", str(similar_times/all_notes))
-    print("all_notes", all_notes)
+    # print("similar notes", similar_notes)
+    # print("similar notes factor", str(similar_notes/all_notes))
+    # print("similar_times", similar_times)
+    # print("similar_times factor", str(similar_times/all_notes))
+    # print("all_notes", all_notes)
     # c = sig.correlate(midi_input.tracks[track_number], midi_result.tracks[track_number])
     # print("correlate: ", c)
     return [similar_notes/all_notes, similar_times/all_notes]
@@ -54,15 +54,25 @@ def evaluate_melody(midi_result: MidiFile, track_data):
     notes = [track_data['line_notes'][track_data['line_path'][i]] for i in range(len(track_data['line_path']))]  # nuty w kolejności na podstawie ścieżki
     notes_in_time_factor = calculate_notes_in_time(track_data, clocks_per_click, numerator)
     repeated_sequences_factor = check_notes_sequences_repetition(notes)
-    cosonance_dissonance_factor = check_cosonance_dissonance(notes)
-    print("cosonance_dissonance_factor: ", cosonance_dissonance_factor)  # <0,1>
+    cosonance_factor = check_cosonance(notes)
+    print("cosonance_factor: ", cosonance_factor)  # <0,1>
     print("repeated_sequences_factor", repeated_sequences_factor)  # <0,1> zazwyczaj. czasem może być > 1
     print("notes_in_time_factor", notes_in_time_factor)  # <0,1>
-    evaluation_result = 0.33 * notes_in_time_factor + 0.33 * repeated_sequences_factor + 0.33 * cosonance_dissonance_factor   # metoda kryteriów ważonych
+    evaluation_result = 0.33 * notes_in_time_factor + 0.33 * repeated_sequences_factor + 0.33 * cosonance_factor   # metoda kryteriów ważonych
     return evaluation_result
 
+def evaluate_melody_for_testing(midi_result: MidiFile, track_data):
+    clocks_per_click = midi_result.tracks[0][0].clocks_per_click
+    numerator = midi_result.tracks[0][0].numerator
+    notes = [track_data['line_notes'][track_data['line_path'][i]] for i in range(len(track_data['line_path']))]  # nuty w kolejności na podstawie ścieżki
+    notes_in_time_factor = calculate_notes_in_time(track_data, clocks_per_click, numerator)
+    repeated_sequences_factor = check_notes_sequences_repetition(notes)
+    cosonance_factor = check_cosonance(notes)
+    evaluation_result = 0.33 * notes_in_time_factor + 0.33 * repeated_sequences_factor + 0.33 * cosonance_factor   # metoda kryteriów ważonych
+    return [evaluation_result, notes_in_time_factor, repeated_sequences_factor, cosonance_factor]
+
 # liczy czy pomiędzy dźwiękami występuje kosonans, czy dysonans na podstawie interwałów
-def check_cosonance_dissonance(notes):
+def check_cosonance(notes):
     cosonance_intervals = [0, 3, 4, 5, 7, 8, 9, 12]  # konsonansy
     cosonances_counter = 0
     for i, prev_note in enumerate(notes, 1):
@@ -110,7 +120,7 @@ def calculate_notes_in_time(track_data, clocks_per_click, numerator):
             if msg.type == 'control_change' and msg.time != 0:  # po ostatnim note off jest control_change wyłączający instrument i
                 # posiadający brakujący time - po nim eventów już nie uwzględniamy
                 break
-    print("eval_notes_time: ", eval_notes_time)
+    # print("eval_notes_time: ", eval_notes_time)
     # print("notes_counter ", notes_counter)
     # print("len(tracks_data['line_path'])", len(tracks_data['line_path']))
     if notes_counter != 0:
@@ -133,7 +143,7 @@ def check_notes_sequences_repetition(notes):  # mierzy powtarzalność sekwencji
                 if s1 == s2:
                     phrase_occurances += 1
                 j += 1
-    print("max_phrase_occurances: ", max_phrase_occurances)
-    print("phrase_occurances: ", phrase_occurances)
-    print("lendata: ", lendata)
+    # print("max_phrase_occurances: ", max_phrase_occurances)
+    # print("phrase_occurances: ", phrase_occurances)
+    # print("lendata: ", lendata)
     return phrase_occurances/max_phrase_occurances  # linia melodyczna złożona z dźwięków jednej wysokości (tych samych) ma factor 1

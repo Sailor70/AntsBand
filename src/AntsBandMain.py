@@ -63,20 +63,20 @@ class AntsBand(object):
             cost_matrix.append(row)
         if self.algorithm_type == 0:
             aco = AntSystem(self.ant_count, self.generations, self.alpha, self.beta, self.rho, self.Q)
-            # aco = ACO(10, 10, 1.0, 5, 0.9, 1, 2)
-            # ACO(1, 1, 5.0, 0, 0.01, 1, 2) - ustawienie do odtworzenia orginalnego
+            # aco = ACO(10, 10, 1.0, 5, 0.5, 100)
+            # ACO(1, 1, 5.0, 0, 0.01, 1) - ustawienie do odtworzenia orginalnego
             # utworu ( ale tylko gdy mrówka zaczenie w dobrym miejscu - w nucie początkowej ? - to zagra tak samo)
-            # aco = ACO(10, 100, 1.0, 8.0, 0.5, 10, 2)
+            # aco = ACO(10, 100, 1.0, 8.0, 0.5, 10)
             graph = GraphAS(cost_matrix, number_of_notes, self.sigma)
             path, cost = aco.solve(graph)
-            print('cost: {}, path: {}'.format(cost, path))
+            # print('cost: {}, path: {}'.format(cost, path))
         else:
             acs = ACS(self.ant_count, self.generations, self.alpha, self.beta, self.rho, phi=self.phi, q_zero=self.q_zero)
             graph = GraphACS(cost_matrix, number_of_notes, self.sigma)
             path, cost = acs.solve(graph)
-            print('cost_acs: {}, path_acs: {}'.format(cost, path))
+            # print('cost_acs: {}, path_acs: {}'.format(cost, path))
         # plot(notes, path)  # wykres
-        return path
+        return [path, cost]  #  TODO zabezpieczyć żeby przez cost się nie wyjebało
 
     def quantizeRound(self, value):  # obcina dźwięki krótsze niż self.clocks_per_click/2 ?
         return int(self.clocks_per_click * round(value / self.clocks_per_click))
@@ -92,16 +92,16 @@ class AntsBand(object):
             # odczyt nut i eventów midi ze ścieżek
             line_notes, line_notes_messages = self.read_notes_from_track(self.midi_file.tracks[track_number])
             # ACO dla lini melodycznych
-            line_path = self.get_new_aco_melody_for_instrument(line_notes)
+            line_path, cost = self.get_new_aco_melody_for_instrument(line_notes)
             # utworzenie nowej ścieżki dla instrumentu
             line_melody_track = self.build_new_melody_track_from_original(self.midi_file.tracks[track_number], line_path, line_notes_messages)
             # utworzenie pliku wynikowego przez podmianę ścieżek
             self.midi_file.tracks[track_number] = line_melody_track
             tracks_data.append({'track_number': track_number, 'line_path': line_path, 'line_notes': line_notes, 'line_melody_track': line_melody_track})
 
-        # self.midi_file.save("./data/result.mid")
-        # prepare_and_play("./data/result.mid")
-        return [self.midi_file, tracks_data]
+        # self.midi_file.save("../data/result.mid")
+        # prepare_and_play("../data/result.mid")
+        return [self.midi_file, tracks_data, cost]
 
     def start_and_extend(self, track_length: int, not_selected_paths: [int]):
         try:
@@ -114,7 +114,7 @@ class AntsBand(object):
             line_notes, line_notes_messages = self.read_notes_from_track(self.midi_file.tracks[track_number])
             line_path = []
             for l in range(track_length):
-                line_path.extend(self.get_new_aco_melody_for_instrument(line_notes))  # ścieżka składa się tylko z indeksów line_notes nierozszerzonego utworu
+                line_path.extend(self.get_new_aco_melody_for_instrument(line_notes)[0])  # ścieżka składa się tylko z indeksów line_notes nierozszerzonego utworu
             line_notes = line_notes*track_length  # replikacja
             # line_notes_messages = line_notes_messages*track_length
             line_notes_messages = self.replicate_and_correct_time(line_notes_messages, track_length)
@@ -170,7 +170,7 @@ class AntsBand(object):
             phrase_paths = []
             order = []
             for i in range(split):
-                phrase_paths.append(self.get_new_aco_melody_for_instrument(phrase_notes[i]))
+                phrase_paths.append(self.get_new_aco_melody_for_instrument(phrase_notes[i])[0])
                 order.append(i)
             random.shuffle(order)  # losowanie kolejności tablic - może mrówkami?
             # print(order)
@@ -296,7 +296,7 @@ class AntsBand(object):
             order = []
             for l in range(track_length):
                 for i in range(split):
-                    phrase_paths.append(self.get_new_aco_melody_for_instrument(phrase_notes[i]))
+                    phrase_paths.append(self.get_new_aco_melody_for_instrument(phrase_notes[i])[0])
                     order.append(i+(l*split))
             phrase_notes = phrase_notes*track_length
             phrases_notes_messages = phrases_notes_messages*track_length

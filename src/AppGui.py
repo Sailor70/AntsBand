@@ -222,7 +222,7 @@ class MainWindow:
                 if int(self.track_length_entry.get()) > 1:
                     midi_result, tracks_data = ants_band.start_and_extend(int(self.track_length_entry.get()), not_selected_paths)
                 else:
-                    midi_result, tracks_data = ants_band.start()
+                    midi_result, tracks_data, cost = ants_band.start()
             execution_time = time.time() - start_time
             self.openNext(midi_result, tracks_data, execution_time)
         except Exception as e:
