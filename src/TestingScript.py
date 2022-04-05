@@ -7,6 +7,7 @@ from AntsBandMain import AntsBand
 from AntsBandService import calculate_similarity, evaluate_melody_for_testing
 
 #  tylko 1 ścieżka melodyczna
+#  46 węzłów ma graf w badanej ścieżce
 
 testing = pd.DataFrame({'ant_count': [], 'generations': [], 'alpha': [], 'beta': [], 'rho': [], 'q': [], 'sigma': [],
                         'evaluation_result': [], 'notes_in_time_factor': [], 'repeated_sequences_factor': [],
@@ -38,7 +39,7 @@ def get_test_mean(params: dict):
     result = dict_mean(result)
     result["midi_filename"] = file_name
     test = params | result
-    print(test)
+    # print(test)
     return test
 
 def dict_mean(dict_list):
@@ -49,28 +50,28 @@ def dict_mean(dict_list):
 
 
 if __name__ == '__main__':
-    start_t = time.time()
-    # params = {'ant_count': 10, 'generations': 10, 'alpha': 1.0, 'beta': 5.0, 'rho': 0.5, 'q': 10, 'sigma': 10}
-    params = [{'ant_count': 10, 'generations': 10, 'alpha': 1.0, 'beta': 5.0, 'rho': 0.5, 'q': 10, 'sigma': 10},
-              {'ant_count': 20, 'generations': 30, 'alpha': 0.1, 'beta': 10.0, 'rho': 0.5, 'q': 20, 'sigma': 10}]  # powtórzony
-              # {'ant_count': 10, 'generations': 100, 'alpha': 1.0, 'beta': 5.0, 'rho': 0.5, 'q': 10, 'sigma': 10},
-              # {'ant_count': 20, 'generations': 20, 'alpha': 1.0, 'beta': 5.0, 'rho': 0.5, 'q': 100, 'sigma': 20},
-              # {'ant_count': 20, 'generations': 30, 'alpha': 2.0, 'beta': 2.0, 'rho': 0.5, 'q': 10, 'sigma': 10},
-              # {'ant_count': 20, 'generations': 30, 'alpha': 0.1, 'beta': 10.0, 'rho': 0.5, 'q': 20, 'sigma': 10},
-              # {'ant_count': 100, 'generations': 10, 'alpha': 5.0, 'beta': 1.0, 'rho': 0.5, 'q': 10, 'sigma': 10},
-              # {'ant_count': 100, 'generations': 100, 'alpha': 5.0, 'beta': 1.0, 'rho': 0.5, 'q': 20, 'sigma': 10},
-              # {'ant_count': 30, 'generations': 30, 'alpha': 3.0, 'beta': 3.0, 'rho': 0.5, 'q': 10, 'sigma': 100},
-              # {'ant_count': 30, 'generations': 40, 'alpha': 1.0, 'beta': 5.0, 'rho': 0.1, 'q': 20, 'sigma': 10},
-              # {'ant_count': 40, 'generations': 50, 'alpha': 1.0, 'beta': 5.0, 'rho': 0.9, 'q': 10, 'sigma': 10},
-              # {'ant_count': 40, 'generations': 60, 'alpha': 5.0, 'beta': 5.0, 'rho': 0.5, 'q': 30, 'sigma': 30}]
-    results = []
-    for i, param in enumerate(params):
-        results.append(get_test_mean(param))
-    print(results)
-    df = pd.DataFrame(results)
-    df.to_csv('../data/antsBand_tests.csv')
-    execution_time = time.time() - start_t
-    print("total execution time: ", execution_time)
+    # start_t = time.time()
+    # # params = {'ant_count': 10, 'generations': 10, 'alpha': 1.0, 'beta': 5.0, 'rho': 0.5, 'q': 10, 'sigma': 10}
+    # params = [{'ant_count': 10, 'generations': 10, 'alpha': 1.0, 'beta': 5.0, 'rho': 0.5, 'q': 10, 'sigma': 10},
+    #           {'ant_count': 20, 'generations': 30, 'alpha': 0.1, 'beta': 10.0, 'rho': 0.5, 'q': 20, 'sigma': 10}]  # powtórzony
+    #           # {'ant_count': 10, 'generations': 100, 'alpha': 1.0, 'beta': 5.0, 'rho': 0.5, 'q': 10, 'sigma': 10},
+    #           # {'ant_count': 20, 'generations': 20, 'alpha': 1.0, 'beta': 5.0, 'rho': 0.5, 'q': 100, 'sigma': 20},
+    #           # {'ant_count': 20, 'generations': 30, 'alpha': 2.0, 'beta': 2.0, 'rho': 0.5, 'q': 10, 'sigma': 10},
+    #           # {'ant_count': 20, 'generations': 30, 'alpha': 0.1, 'beta': 10.0, 'rho': 0.5, 'q': 20, 'sigma': 10},
+    #           # {'ant_count': 100, 'generations': 10, 'alpha': 5.0, 'beta': 1.0, 'rho': 0.5, 'q': 10, 'sigma': 10},
+    #           # {'ant_count': 100, 'generations': 100, 'alpha': 5.0, 'beta': 1.0, 'rho': 0.5, 'q': 20, 'sigma': 10},
+    #           # {'ant_count': 30, 'generations': 30, 'alpha': 3.0, 'beta': 3.0, 'rho': 0.5, 'q': 10, 'sigma': 100},
+    #           # {'ant_count': 30, 'generations': 40, 'alpha': 1.0, 'beta': 5.0, 'rho': 0.1, 'q': 20, 'sigma': 10},
+    #           # {'ant_count': 40, 'generations': 50, 'alpha': 1.0, 'beta': 5.0, 'rho': 0.9, 'q': 10, 'sigma': 10},
+    #           # {'ant_count': 40, 'generations': 60, 'alpha': 5.0, 'beta': 5.0, 'rho': 0.5, 'q': 30, 'sigma': 30}]
+    # results = []
+    # for i, param in enumerate(params):
+    #     results.append(get_test_mean(param))
+    # print(results)
+    # df = pd.DataFrame(results)
+    # df.to_csv('../data/antsBand_tests.csv')
+    # execution_time = time.time() - start_t
+    # print("total execution time: ", execution_time)
 
     # na to potrzeba około 2dni by się wszystko wykonało
     # ant_counts = [1, 5, 10, 20, 30, 50, 100]
@@ -80,19 +81,34 @@ if __name__ == '__main__':
     # rhos = [0.1, 0.5, 0.9]
     # qs = [1, 5, 10, 20, 100]
     # sigmas = [1, 5, 10, 20, 50, 100]
-    # param_sets = []
-    # for a, count in enumerate(ant_counts):
-    #     for b, gen in enumerate(generations):
-    #         for c, alp in enumerate(alphas):
-    #             for d, bet in enumerate(betas):
-    #                 for e, rho in enumerate(rhos):
-    #                     for f, q in enumerate(qs):
-    #                         for g, sig in enumerate(sigmas):
-    #                             param_sets.append({'ant_count': count, 'generations': gen, 'alpha': alp, 'beta': bet, 'rho': rho, 'q': q, 'sigma': sig})
-    # print(str(len(param_sets)), " tests has been created")
-    # results = []
-    # for i, params in enumerate(param_sets):
-    #     results.append(get_test_mean(params))
-    # print(results)
+
+    ant_counts = [1, 5, 10, 20]  # 100 to jest fest dużo
+    generations = [1, 10]
+    alphas = [0.1, 0.5]
+    betas = [0.1, 1.0]
+    rhos = [0.1, 0.5]
+    qs = [1, 5]
+    sigmas = [1, 5]
+    param_sets = []
+    for a, count in enumerate(ant_counts):
+        for b, gen in enumerate(generations):
+            for c, alp in enumerate(alphas):
+                for d, bet in enumerate(betas):
+                    for e, rho in enumerate(rhos):
+                        for f, q in enumerate(qs):
+                            for g, sig in enumerate(sigmas):
+                                param_sets.append({'ant_count': count, 'generations': gen, 'alpha': alp, 'beta': bet, 'rho': rho, 'q': q, 'sigma': sig})
+    print(str(len(param_sets)), " tests has been created")
+    results = []
+    start_t = time.time()
+    for i, params in enumerate(param_sets):
+        results.append(get_test_mean(params))
+
+    execution_time = time.time() - start_t
+    print("total execution time: ", execution_time)
+    df = pd.DataFrame(results)
+    df.to_csv('../data/antsBand_tests.csv', index=False)  # bez kolumny indexu
+    # df.to_csv('../data/antsBand_tests.csv', index_label='id')  # nazwanie kolumny z id bo teraz bez nazwy
+    print(results)
 
 
