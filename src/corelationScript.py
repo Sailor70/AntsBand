@@ -2,7 +2,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-df = pd.read_csv('../data/results/antsBand_tests2.csv')  # todo global
+try:
+    df = pd.read_csv('../data/results/antsBand_tests2.csv')  # todo global
+except FileNotFoundError:
+    print("brak pliku do analizy! ")
 # print(df.dtypes)
 # print(df.to_string())
 # print(df.corr().to_string())

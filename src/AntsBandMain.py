@@ -76,7 +76,7 @@ class AntsBand(object):
             path, cost = acs.solve(graph)
             # print('cost_acs: {}, path_acs: {}'.format(cost, path))
         # plot(notes, path)  # wykres
-        return [path, cost]  #  TODO zabezpieczyć żeby przez cost się nie wyjebało
+        return [path, cost]
 
     def quantizeRound(self, value):  # obcina dźwięki krótsze niż self.clocks_per_click/2 ?
         return int(self.clocks_per_click * round(value / self.clocks_per_click))
@@ -326,6 +326,6 @@ if __name__ == '__main__':
     # antsBand.start()
     # midi_result, tracks_data = antsBand.start_and_divide(4)
     # midi_result, tracks_data = antsBand.start_and_extend(3, [4])
-    midi_result, tracks_data = antsBand.start()
+    midi_result, tracks_data, cost = antsBand.start()
     print("Eval result: ", evaluate_melody(midi_result, tracks_data[1]))
     calculate_similarity(midi_result, tracks_data[1], MidiFile('./data/theRockingAnt.mid', clip=True))
