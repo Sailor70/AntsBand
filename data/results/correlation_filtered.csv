@@ -1,0 +1,13 @@
+,,0
+cosonance_factor,evaluation_result,0.999776904872984
+cost,cosonance_factor,0.7359400709154025
+evaluation_result,cost,0.7335203158712981
+repeated_sequences_factor,beta,0.7228089022865926
+execution_time,generations,0.6790055180328265
+ant_count,execution_time,0.5643139920736231
+repeated_sequences_factor,cost,-0.6225591328280038
+cost,beta,-0.6834665554987732
+evaluation_result,repeated_sequences_factor,-0.7358130853327833
+repeated_sequences_factor,cosonance_factor,-0.7499524496529095
+beta,evaluation_result,-0.8820446951903497
+beta,cosonance_factor,-0.8841494608297246
