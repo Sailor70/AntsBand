@@ -17,7 +17,8 @@ df = df.drop('midi_filename', axis=1)  # usunięcie kolumny bo niepotrzebna do s
 
 rows, number_of_cols = df.shape  # liczba kolumn
 col_names = list(df.columns)  # nazwy kolumn
-correlation = df.corr()
+correlation = df.corr(method='spearman')  # spearman bardziej uniwersalny, dla cech o charakterze jakościowym
+# correlation = df.corr()  # Pearson domyślnie
 # correlation.to_csv('../data/results/correlation_results.csv')
 
 # df_droped = df.drop('midi_filename', axis=1)  # usunięcie kolumny z data frame
@@ -28,9 +29,9 @@ corr_series = correlation[correlation < 1].unstack().transpose()\
 corr_series = corr_series[corr_series != 0]
 corr_series.to_csv('../data/results/correlation_all_sorted.csv')  # wszystkie korelacje posortowane
 
-positive_corr = corr_series[corr_series > 0.55]
+positive_corr = corr_series[corr_series > 0.4]
 print(positive_corr)
-negative_corr = corr_series[corr_series < -0.55]
+negative_corr = corr_series[corr_series < -0.4]
 print(negative_corr)
 filtered_corr = pd.concat([positive_corr, negative_corr])
 # filtered_corr = dropped_corr.where(dropped_corr > 0.55, dropped_corr < -0.55)

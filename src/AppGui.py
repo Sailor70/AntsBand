@@ -217,7 +217,7 @@ class MainWindow:
                 if int(self.track_length_entry.get()) > 1:
                         midi_result, tracks_data = ants_band.start_divide_and_extend(int(self.split_entry.get()), int(self.track_length_entry.get()), not_selected_paths, bool(self.mix_phrases.get()))
                 else:
-                    midi_result, tracks_data = ants_band.start_and_divide(int(self.split_entry.get()), bool(self.mix_phrases.get()))
+                    midi_result, tracks_data, cost = ants_band.start_and_divide(int(self.split_entry.get()), bool(self.mix_phrases.get()))
             else:
                 if int(self.track_length_entry.get()) > 1:
                     midi_result, tracks_data = ants_band.start_and_extend(int(self.track_length_entry.get()), not_selected_paths)

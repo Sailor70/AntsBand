@@ -162,6 +162,7 @@ class AntsBand(object):
             print("Nie masz w pliku clocks_per_click!")
             raise
         tracks_data = []
+        total_cost = 0  # todo zsumuje się dla wielu linii - rozdzielić
         for track_number in self.tracks_numbers:
             # odczyt nut i eventów midi ze ścieżek
             line_notes, line_notes_messages = self.read_notes_from_track(self.midi_file.tracks[track_number])
@@ -170,7 +171,10 @@ class AntsBand(object):
             phrase_paths = []
             order = []
             for i in range(split):
-                phrase_paths.append(self.get_new_aco_melody_for_instrument(phrase_notes[i])[0])
+                path, cost = self.get_new_aco_melody_for_instrument(phrase_notes[i])
+                phrase_paths.append(path)
+                total_cost += cost
+                # phrase_paths.append(self.get_new_aco_melody_for_instrument(phrase_notes[i])[0])
                 order.append(i)
             random.shuffle(order)  # losowanie kolejności tablic - może mrówkami?
             # print(order)
@@ -188,7 +192,7 @@ class AntsBand(object):
 
         # self.midi_file.save("./data/result.mid")
         # prepare_and_play("./data/result.mid")
-        return [self.midi_file, tracks_data]
+        return [self.midi_file, tracks_data, total_cost]
 
     def build_new_melody_track_from_original(self, melody_track: MidiTrack, path: list, notes_messages: list):
         path_counter = 0
