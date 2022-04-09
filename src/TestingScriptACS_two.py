@@ -91,7 +91,7 @@ def get_tests_results():
         if i % 50 == 0:  # dla bezpieczeństwa zapis co 50 testów
             df = pd.DataFrame(results)
             # df.to_csv('../data/results/results_acs2/antsBand_test_acs2.csv',index=False) # faza pierwsza
-            df.to_csv('../data/results/results_acs2/antsBand_tests_acs2_2.csv',index=False)
+            df.to_csv('../data/results/results_acs2/antsBand_test_acs2_2.csv',index=False)
 
     execution_time = time.time() - start_t
     print("total execution time: ", execution_time)

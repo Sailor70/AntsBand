@@ -23,8 +23,8 @@ def get_test_mean(params: dict):
         execution_time = time.time() - start_time
         if i == 1:
             file_name = "result_test" + str(time.time()) + ".mid"
-            midi_result.save("../data/results/results_2lines/1/" + file_name)
-            # midi_result.save("../data/results/results_2lines/2/" + file_name)
+            # midi_result.save("../data/results/results_2lines/1/" + file_name)
+            midi_result.save("../data/results/results_2lines/2/" + file_name)
         evaluation_result, notes_in_time_factor, repeated_sequences_factor, cosonance_factor = evaluate_melody_for_testing(midi_result, tracks_data[0])
         evaluation_result2, notes_in_time_factor2, repeated_sequences_factor2, cosonance_factor2 = evaluate_melody_for_testing(midi_result, tracks_data[1])
         similar_notes_factor, similar_times_factor = calculate_similarity(midi_result, tracks_data[0], MidiFile('../data/theDreamingAnt.mid', clip=True))
@@ -53,11 +53,11 @@ def get_tests_results():
     #           {'ant_count': 2, 'generations': 3, 'alpha': 2.0, 'beta': 2.0, 'rho': 0.5, 'q': 10, 'sigma': 10}]
 
     # faza 1 - 4320 testów
-    ant_counts = [1, 5, 10, 20]
-    generations = [1, 10, 20]
+    # ant_counts = [1, 5, 10, 20]
+    # generations = [1, 10, 20]
     # faza druga - tylko ant_counts i generations zmieniono. 1440 testów
-    # ant_counts = [30, 60]
-    # generations = [30, 50]
+    ant_counts = [30, 60]
+    generations = [30, 50]
     alphas = [0.1, 0.5, 2.0, 5.0]
     betas = [0.1, 1.0, 2.0, 5.0, 10.0]
     rhos = [0.2, 0.5, 0.9]
@@ -81,14 +81,14 @@ def get_tests_results():
         results.append(get_test_mean(params))
         if i % 50 == 0:  # dla bezpieczeństwa zapis co 50 testów
             df = pd.DataFrame(results)
-            df.to_csv('../data/results/results_2lines/antsBand_test_2lines.csv', index=False)   # faza pierwsza
-            # df.to_csv('../data/results/results_2lines/antsBand_tests_2lines2.csv', index=False)
+            # df.to_csv('../data/results/results_2lines/antsBand_test_2lines.csv', index=False)   # faza pierwsza
+            df.to_csv('../data/results/results_2lines/antsBand_test_2lines2.csv', index=False)
 
     execution_time = time.time() - start_t
     print("total execution time: ", execution_time)
     df = pd.DataFrame(results)
-    df.to_csv('../data/results/results_2lines/antsBand_test_2lines.csv', index=False)
-    # df.to_csv('../data/results/results_2lines/antsBand_test_2lines.csv', index=False)  # bez kolumny indexu  todo jakiś generowany name
+    # df.to_csv('../data/results/results_2lines/antsBand_test_2lines.csv', index=False)
+    df.to_csv('../data/results/results_2lines/antsBand_test_2lines2.csv', index=False)  # bez kolumny indexu  todo jakiś generowany name
 
 
 
