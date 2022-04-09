@@ -8,6 +8,6 @@ cosonance_factor,max,0.8133333333333332,366
 similar_notes_factor,min,0.1304347826086956,3087
 similar_notes_factor,max,0.3847826086956522,278
 execution_time,min,0.0046292781829833,138
-execution_time,max,1.4790726184844971,4129
+execution_time,max,9.714967918395995,4371
 cost,min,118.0,2779
 cost,max,795.6,188

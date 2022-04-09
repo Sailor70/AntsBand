@@ -1,0 +1,13 @@
+parameter,type,value,row_id
+evaluation_result,min,0.4894944063056191,1026
+evaluation_result,max,0.559823646071701,1638
+repeated_sequences_factor,min,0.000214424951267,12
+repeated_sequences_factor,max,0.0534892787524366,3938
+cosonance_factor,min,0.5577777777777777,68
+cosonance_factor,max,0.7822222222222222,1638
+similar_notes_factor,min,0.1499999999999999,4118
+similar_notes_factor,max,0.3739130434782609,2874
+execution_time,min,0.0079919815063476,299
+execution_time,max,7.717456817626953,4185
+cost,min,118.0,1486
+cost,max,786.5,2
