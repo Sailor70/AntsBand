@@ -49,7 +49,7 @@ def get_tests_results():
     #           {'ant_count': 2, 'generations': 2, 'alpha': 1.0, 'beta': 5.0, 'rho': 0.5, 'q': 100, 'sigma': 20},
     #           {'ant_count': 2, 'generations': 3, 'alpha': 2.0, 'beta': 2.0, 'rho': 0.5, 'q': 10, 'sigma': 10}]
 
-    # faza pierwsza - 3888 testów
+    # faza pierwsza
     # ant_counts = [1, 5, 10, 20]
     # generations = [1, 10, 20]
     # alphas = [0.1, 1.0, 5.0]
@@ -91,8 +91,8 @@ def get_tests_results():
         results.append(get_test_mean(params))
         if i % 50 == 0:  # dla bezpieczeństwa zapis co 50 testów
             df = pd.DataFrame(results)
-            # df.to_csv('../../data/results/results_acs2/antsBand_test_acs2.csv',index=False) # faza pierwsza
-            df.to_csv('../../data/results/results_acs2/antsBand_test_acs2_2.csv',index=False)
+            # df.to_csv('../../data/results/results_acs2/antsBand_test_acs2.csv', index=False) # faza pierwsza
+            df.to_csv('../../data/results/results_acs2/antsBand_test_acs2_2.csv', index=False)
 
     execution_time = time.time() - start_t
     print("total execution time: ", execution_time)

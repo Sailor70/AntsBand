@@ -1,0 +1,4 @@
+   ant_count  generations  alpha  beta  rho  q  sigma  evaluation_result  notes_in_time_factor  repeated_sequences_factor  cosonance_factor  similar_notes_factor  similar_times_factor  execution_time   cost
+1          1            1    0.1   0.1  0.2  1      5           0.505256              0.761957                   0.000234          0.768889              0.263043                   0.0        0.002688  661.7 test_name: results3 
+   ant_count  generations  alpha  beta  rho  q  sigma  phi  q_zero  evaluation_result  notes_in_time_factor  repeated_sequences_factor  cosonance_factor  similar_notes_factor  similar_times_factor  execution_time   cost
+5          1            1    0.1   0.1  0.2  1      5  0.5     0.9           0.486703              0.767391                   0.000799          0.706667              0.252174                   0.0        0.002746  465.3 test_name: results_acs2 
