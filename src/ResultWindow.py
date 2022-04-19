@@ -15,6 +15,7 @@ class ResultWindow:
         master.title("Uzyskany wynik")
         master.geometry("500x600")
         mixer.init()  # initializing the mixer
+        master.iconbitmap(r'G:\ProgProjects\Python\AntsBand\src\antIcon.ico')
 
         self.midi_result = midi_result
         self.tracks_data = tracks_data

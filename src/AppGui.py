@@ -20,6 +20,7 @@ class MainWindow:
         master.geometry("600x350")
         # master.resizable(False, False)
         master.option_add("*Font", "Raleway")  # czcionka globalnie
+        master.iconbitmap(r'G:\ProgProjects\Python\AntsBand\src\antIcon.ico')
 
         # zmienne pomocnicze
         self.midi_input = None

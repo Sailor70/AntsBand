@@ -78,7 +78,7 @@ class AntsBand(object):
         # plot(notes, path)  # wykres
         return [path, cost]
 
-    def quantizeRound(self, value):  # obcina dźwięki krótsze niż self.clocks_per_click/2 ?
+    def quantize_round(self, value):  # obcina dźwięki krótsze niż self.clocks_per_click/2 ?
         return int(self.clocks_per_click * round(value / self.clocks_per_click))
 
     def start(self):
@@ -206,8 +206,8 @@ class AntsBand(object):
                     melody_track[i] = Message('note_on', channel=msg.channel, note=new_on_msg.note, velocity=new_on_msg.velocity, time=msg.time)
                     melody_track[i + 1] = Message('note_off', channel=msg.channel, note=new_off_msg.note, velocity=new_off_msg.velocity,time=melody_track[i + 1].time)
                 else:
-                    melody_track[i] = Message('note_on', channel=msg.channel, note=new_on_msg.note, velocity=new_on_msg.velocity, time=self.quantizeRound(new_on_msg.time))
-                    melody_track[i + 1] = Message('note_off', channel=msg.channel, note=new_off_msg.note, velocity=new_off_msg.velocity, time=self.quantizeRound(new_off_msg.time))
+                    melody_track[i] = Message('note_on', channel=msg.channel, note=new_on_msg.note, velocity=new_on_msg.velocity, time=self.quantize_round(new_on_msg.time))
+                    melody_track[i + 1] = Message('note_off', channel=msg.channel, note=new_off_msg.note, velocity=new_off_msg.velocity, time=self.quantize_round(new_off_msg.time))
                 path_counter += 1
         return melody_track
 
@@ -226,11 +226,11 @@ class AntsBand(object):
                     result_msg_sequence.append(Message('note_on', channel=old_on_msg.channel, note=new_on_msg.note, velocity=new_on_msg.velocity, time=old_on_msg.time))
                     result_msg_sequence.append(Message('note_off', channel=old_off_msg.channel, note=new_off_msg.note, velocity=new_off_msg.velocity, time=old_off_msg.time))
                 else:
-                    result_msg_sequence.append(Message('note_on', channel=old_on_msg.channel, note=new_on_msg.note, velocity=new_on_msg.velocity, time=self.quantizeRound(new_on_msg.time)))
+                    result_msg_sequence.append(Message('note_on', channel=old_on_msg.channel, note=new_on_msg.note, velocity=new_on_msg.velocity, time=self.quantize_round(new_on_msg.time)))
                     # result_msg_sequence.append(Message('note_on', channel=old_on_msg.channel, note=new_on_msg.note, velocity=new_on_msg.velocity, time=new_on_msg.time))
                     time_counter += new_on_msg.time
                     time_values.append(new_on_msg.time)
-                    result_msg_sequence.append(Message('note_off', channel=old_off_msg.channel, note=new_off_msg.note, velocity=new_off_msg.velocity, time=self.quantizeRound(new_off_msg.time)))
+                    result_msg_sequence.append(Message('note_off', channel=old_off_msg.channel, note=new_off_msg.note, velocity=new_off_msg.velocity, time=self.quantize_round(new_off_msg.time)))
                     # result_msg_sequence.append(Message('note_on', channel=old_off_msg.channel, note=new_off_msg.note, velocity=new_off_msg.velocity, time=new_off_msg.time))
                     time_counter += new_off_msg.time
                     time_values.append(new_off_msg.time)
