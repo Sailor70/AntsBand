@@ -49,10 +49,11 @@ def calculate_similarity(midi_result: MidiFile, track_data, midi_input: MidiFile
     return [similar_notes/all_notes, similar_times/all_notes]
 
 def evaluate_melody(midi_result: MidiFile, track_data):
-    clocks_per_click = midi_result.tracks[0][0].clocks_per_click
+    ticks_per_beat = midi_result.ticks_per_beat
+    ticks_per_semiquaver = ticks_per_beat / (16 / midi_result.tracks[0][0].denominator)
     numerator = midi_result.tracks[0][0].numerator
     notes = [track_data['line_notes'][track_data['line_path'][i]] for i in range(len(track_data['line_path']))]  # nuty w kolejności na podstawie ścieżki
-    notes_in_time_factor = calculate_notes_in_time(track_data, clocks_per_click, numerator)
+    notes_in_time_factor = calculate_notes_in_time(track_data, ticks_per_semiquaver, numerator)
     repeated_sequences_factor = check_notes_sequences_repetition(notes)
     cosonance_factor = check_cosonance(notes)
     print("cosonance_factor: ", cosonance_factor)  # <0,1>
@@ -62,10 +63,11 @@ def evaluate_melody(midi_result: MidiFile, track_data):
     return evaluation_result
 
 def evaluate_melody_for_testing(midi_result: MidiFile, track_data):
-    clocks_per_click = midi_result.tracks[0][0].clocks_per_click
+    ticks_per_beat = midi_result.ticks_per_beat
+    ticks_per_semiquaver = ticks_per_beat / (16 / midi_result.tracks[0][0].denominator)
     numerator = midi_result.tracks[0][0].numerator
     notes = [track_data['line_notes'][track_data['line_path'][i]] for i in range(len(track_data['line_path']))]  # nuty w kolejności na podstawie ścieżki
-    notes_in_time_factor = calculate_notes_in_time(track_data, clocks_per_click, numerator)
+    notes_in_time_factor = calculate_notes_in_time(track_data, ticks_per_semiquaver, numerator)
     repeated_sequences_factor = check_notes_sequences_repetition(notes)
     cosonance_factor = check_cosonance(notes)
     evaluation_result = 0.33 * notes_in_time_factor + 0.33 * repeated_sequences_factor + 0.33 * cosonance_factor   # metoda kryteriów ważonych
@@ -84,12 +86,12 @@ def check_cosonance(notes):
     # print("cosonances_counter: ", cosonances_counter)
     return cosonances_counter/(len(notes)-1)
 
-def check_base_notes_at_accents(track_data, clocks_per_click, numerator, denominator):
+def check_base_notes_at_accents(track_data, ticks_per_beat, numerator):
     base_note_value = 41  # dźwięk F w pierwszej oktawie
     base_notes = [17, 29, 41, 53, 65, 77, 89]  # to trzeba jakoś wyliczać - są co 12
     time_counter = 0
     notes_counter = 0
-    tact_time = clocks_per_click * numerator * denominator
+    tact_time = ticks_per_beat * numerator
     # print(track_data['line_melody_track'])
     for i, msg in enumerate(track_data['line_melody_track']):
         if hasattr(msg, 'time'):  # 'note_on' or msg.type == 'note_off'
@@ -103,7 +105,7 @@ def check_base_notes_at_accents(track_data, clocks_per_click, numerator, denomin
                 # prev_msg = msg
     return notes_counter
 
-def calculate_notes_in_time(track_data, clocks_per_click, numerator):
+def calculate_notes_in_time(track_data, ticks_per_semiquaver, numerator):
     eval_notes_time = [0] * len(track_data['line_path'])
     time_counter = 0
     notes_counter = 0
@@ -111,10 +113,10 @@ def calculate_notes_in_time(track_data, clocks_per_click, numerator):
         if hasattr(msg, 'time'):
             time_counter += msg.time
             if msg.type == 'note_on':
-                if time_counter % clocks_per_click == 0:  # jeśli mieści się w siatce nut (trafia w szesnastkę)
+                if time_counter % ticks_per_semiquaver == 0:  # jeśli mieści się w siatce nut (trafia w szesnastkę)
                     eval_notes_time[notes_counter] += 1
-                if time_counter % (clocks_per_click * (numerator/2)) == 0:  # ósemka (nuta trafia w którąś z 1/8 taktu)
-                # if time_counter % (clocks_per_click * numerator) == 0:  # ćwierćnuta
+                if time_counter % (ticks_per_semiquaver * 2) == 0:  # ósemka (nuta trafia w którąś z 1/8 taktu)
+                # if time_counter % (ticks_per_semiquaver * numerator) == 0:  # ćwierćnuta
                     eval_notes_time[notes_counter] += 1
                 notes_counter += 1
             if msg.type == 'control_change' and msg.time != 0:  # po ostatnim note off jest control_change wyłączający instrument i

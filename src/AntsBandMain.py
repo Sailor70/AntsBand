@@ -30,7 +30,17 @@ class AntsBand(object):
         self.phi = phi
         self.q_zero = q_zero
         self.sigma = sigma
-        self.clocks_per_click = 24
+        try:
+            self.ticks_per_beat = midi_file.ticks_per_beat
+        except AttributeError:
+            print("Nie masz w pliku ticks_per_beat!")
+            raise
+        self.ticks_per_semiquaver = self.ticks_per_beat / (16/midi_file.tracks[0][0].denominator)
+        # denominator = 1 -> self.ticks_per_quarter_beat = self.ticks_per_beat / 16
+        # denominator = 2 -> self.ticks_per_quarter_beat = self.ticks_per_beat / 8
+        # denominator = 4 -> self.ticks_per_quarter_beat = self.ticks_per_beat / 4
+        # denominator = 8 -> self.ticks_per_quarter_beat = self.ticks_per_beat / 2
+        # denominator = 16 -> self.ticks_per_quarter_beat = self.ticks_per_beat / 1
 
     def distance(self, a: int, b: int):
         result = abs(a - b)
@@ -82,15 +92,10 @@ class AntsBand(object):
         # plot(notes, path)  # wykres
         return [path, cost]
 
-    def quantize_round(self, value):  # obcina dźwięki krótsze niż self.clocks_per_click/2 ?
-        return int(self.clocks_per_click * round(value / self.clocks_per_click))
+    def quantize_round(self, value):  # obcina dźwięki krótsze niż self.ticks_per_semiquaver/2 ?
+        return int(self.ticks_per_semiquaver * round(value / self.ticks_per_semiquaver))
 
     def start(self):
-        try:
-            self.clocks_per_click = self.midi_file.tracks[0][0].clocks_per_click
-        except AttributeError:
-            print("Nie masz w pliku clocks_per_click!")
-            raise
         tracks_data = []
         for track_number in self.tracks_numbers:
             # odczyt nut i eventów midi ze ścieżek
@@ -108,11 +113,6 @@ class AntsBand(object):
         return [self.midi_file, tracks_data, cost]
 
     def start_and_extend(self, track_length: int, not_selected_paths: [int]):
-        try:
-            self.clocks_per_click = self.midi_file.tracks[0][0].clocks_per_click
-        except AttributeError:
-            print("Nie masz w pliku clocks_per_click!")
-            raise
         tracks_data = []
         for track_number in self.tracks_numbers:
             line_notes, line_notes_messages = self.read_notes_from_track(self.midi_file.tracks[track_number])
@@ -131,7 +131,7 @@ class AntsBand(object):
         return [self.midi_file, tracks_data]
 
     def replicate_and_correct_time(self, line_notes_messages: list, track_length):
-        tact_length = self.clocks_per_click * self.midi_file.tracks[0][0].numerator * self.midi_file.tracks[0][0].denominator
+        tact_length = self.ticks_per_beat * self.midi_file.tracks[0][0].numerator
         print("tact length: ", tact_length)
         time_counter = 0
         for i, msg in enumerate(line_notes_messages):  # obliczenie całkowitego czasu linii melodycznej
@@ -159,12 +159,6 @@ class AntsBand(object):
         return [line_path, line_notes_messages, line_notes]
 
     def start_and_divide(self, split: int, mix_phrases: bool):
-        # print(self.midi_file.tracks[0][0])
-        try:
-            self.clocks_per_click = self.midi_file.tracks[0][0].clocks_per_click
-        except AttributeError:
-            print("Nie masz w pliku clocks_per_click!")
-            raise
         tracks_data = []
         tracks_cost = []
         for track_number in self.tracks_numbers:
@@ -203,7 +197,7 @@ class AntsBand(object):
     def build_new_melody_track_from_original(self, melody_track: MidiTrack, path: list, notes_messages: list):
         path_counter = 0
         for i, msg in enumerate(melody_track):
-            if msg.type == 'note_on' and (path_counter < len(path)):
+            if msg.type == 'note_on' and msg.velocity != 0 and (path_counter < len(path)):
                 new_on_msg = notes_messages[path[path_counter]][0]
                 new_off_msg = notes_messages[path[path_counter]][1]
                 if self.keep_old_timing:
@@ -253,13 +247,13 @@ class AntsBand(object):
 
     def quantize_track(self, msg_sequence: list, time_list: list, time_counter: int):  # funkcja niewykorzystana - gra bardzo sztywno i robi pauzy
         # TODO trzeba unaturalnić czasy i dopasować sumaryczną długość do time_sum
-        tact_length = self.clocks_per_click * self.midi_file.tracks[0][0].numerator * self.midi_file.tracks[0][0].denominator
+        tact_length = self.ticks_per_beat * self.midi_file.tracks[0][0].numerator
         time_sum = sum(time_list)
         corrected_time_list = copy.deepcopy(time_list)
         for i, time_value in enumerate(corrected_time_list):
-            corrected_time_list[i] = int(self.clocks_per_click * np.ceil(time_value / self.clocks_per_click))
+            corrected_time_list[i] = int(self.ticks_per_semiquaver * np.ceil(time_value / self.ticks_per_semiquaver))
             if corrected_time_list[i] == 0:
-                corrected_time_list[i] = self.clocks_per_click
+                corrected_time_list[i] = self.ticks_per_semiquaver
         corrected_time_list[0] = 0  # pierwsza nuta bez pauzy
         # corrected_time_list = [4 if i < 4 else i for i in corrected_time_list]  # najmnieje czasy to 4
         corrected_time_sum = sum(corrected_time_list)
@@ -272,7 +266,7 @@ class AntsBand(object):
         return msg_sequence
 
     def extend_unedited_paths(self, not_selected_paths: [int], track_length: int):  # zawiera też korekcję czasu
-        tact_length = self.clocks_per_click * self.midi_file.tracks[0][0].numerator * self.midi_file.tracks[0][0].denominator
+        tact_length = self.ticks_per_beat * self.midi_file.tracks[0][0].numerator
         for i in not_selected_paths:
             notes_end_index = 0
             notes_messages = []
@@ -292,11 +286,6 @@ class AntsBand(object):
             self.midi_file.tracks[i][notes_end_index:notes_end_index] = expansion_part  # wstawienie po oryginalnej ścieżce części rozszerzającej
 
     def start_divide_and_extend(self, split: int, track_length: int, not_selected_paths: [int], mix_phrases: bool):  # track_length określa liczbę fraz w finalnym utworze
-        try:
-            self.clocks_per_click = self.midi_file.tracks[0][0].clocks_per_click
-        except AttributeError:
-            print("Nie masz w pliku clocks_per_click!")
-            raise
         tracks_data = []
         for track_number in self.tracks_numbers:
             line_notes, line_notes_messages = self.read_notes_from_track(self.midi_file.tracks[track_number])
