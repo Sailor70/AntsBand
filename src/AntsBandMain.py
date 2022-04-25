@@ -43,10 +43,14 @@ class AntsBand(object):
         notes = []  # zawiera wysokości kolejno zagranych dźwięków w oryginalnej ścieżce
         notes_messages = []  # zawiera kolejne pełne eventy midi z oryginalnej ścieżki
         for i, msg in enumerate(melody_track):  # przeanalizuj każdy event midi z ścieżki
-            if msg.type == 'note_on':  # interesują nas tylko eventy dla nut
+            if msg.type == 'note_on' and msg.velocity != 0:  # interesują nas eventy włączające dźwięk
                 notes.append(msg.note)
                 j = i+1
-                while melody_track[j].type != 'note_off' or melody_track[j].note != msg.note:
+                while True:  # do znalezienia eventu wyłączająecgo dźwięk
+                    if melody_track[j].type == 'note_off' and melody_track[j].note == msg.note:
+                        break  # standardowa forma note_on -> note_off
+                    if melody_track[j].type == 'note_on' and melody_track[j].note == msg.note and melody_track[j].velocity == 0:
+                        break  # nietypowa forma note_on -> note_on (velocity==0) w fishpolka
                     j += 1
                 notes_messages.append([msg,melody_track[j]])
                 # notes_messages.append([msg,
@@ -247,7 +251,7 @@ class AntsBand(object):
                 notes_messages_detected = True
         return MidiTrack(result_msg_sequence)
 
-    def quantize_track(self, msg_sequence: list, time_list: list, time_counter: int):  # gra bardzo sztywno i robi pauzy
+    def quantize_track(self, msg_sequence: list, time_list: list, time_counter: int):  # funkcja niewykorzystana - gra bardzo sztywno i robi pauzy
         # TODO trzeba unaturalnić czasy i dopasować sumaryczną długość do time_sum
         tact_length = self.clocks_per_click * self.midi_file.tracks[0][0].numerator * self.midi_file.tracks[0][0].denominator
         time_sum = sum(time_list)
