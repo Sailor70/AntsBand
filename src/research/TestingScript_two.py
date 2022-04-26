@@ -21,6 +21,7 @@ def get_test_mean(params: dict):
     antsBand = AntsBand(midi_file=MidiFile('../../data/theRockingAntDrums.mid', clip=True), tracks_numbers=[3],
                         keep_old_timing=False, result_track_length=1, algorithm_type=0, ant_count=params['ant_count'], generations=params['generations'],
                         alpha=params['alpha'], beta=params['beta'], rho=params['rho'], q=params['q'], phi=0.1, q_zero=0.9, sigma=params['sigma'])
+    # todo może tutaj zaimplementować multithreading? 5 rdzeni każdy po 2 wykonania antsBand.start()
     for i in range(10):
         start_time = time.time()
         midi_result, tracks_data, cost = antsBand.start_and_divide(4, True)
@@ -72,6 +73,7 @@ def get_tests_results():
                         for f, q in enumerate(qs):
                             for g, sig in enumerate(sigmas):
                                 param_sets.append({'ant_count': count, 'generations': gen, 'alpha': alp, 'beta': bet, 'rho': rho, 'q': q, 'sigma': sig})
+    # todo można zaapendować dodatkowe zestawy z np 150 generations i standardowym zestawem parametrów. zawsze można appendować do csv kolejne porce danych - robić na partie dla bezpieczeństwa
     print(str(len(param_sets)), " tests has been created")
     start_t = time.time()
 
