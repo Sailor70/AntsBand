@@ -21,7 +21,6 @@ def get_test_mean(params: dict):
     antsBand = AntsBand(midi_file=MidiFile('../../data/theRockingAntDrums.mid', clip=True), tracks_numbers=[3],
                         keep_old_timing=False, result_track_length=1, algorithm_type=0, ant_count=params['ant_count'], generations=params['generations'],
                         alpha=params['alpha'], beta=params['beta'], rho=params['rho'], q=params['q'], phi=0.1, q_zero=0.9, sigma=params['sigma'])
-    # todo może tutaj zaimplementować multithreading? 5 rdzeni każdy po 2 wykonania antsBand.start()
     for i in range(10):
         start_time = time.time()
         midi_result, tracks_data, cost = antsBand.start_and_divide(4, True)
@@ -39,7 +38,6 @@ def get_test_mean(params: dict):
     result["midi_filename"] = file_name
     test = params | result
     master_results.append(test)
-    # return test
 
 def dict_mean(dict_list):
     mean_dict = {}
@@ -57,7 +55,7 @@ def get_tests_results():
     # faza 1 - 4320 testów
     # ant_counts = [1, 5, 10, 20]
     # generations = [1, 10, 20]
-    # faza druga - tylko ant_counts i generations zmieniono. 1440 testó
+    # faza druga - tylko ant_counts i generations zmieniono. 1440 testów
     ant_counts = [30, 60]
     generations = [30, 50]
     alphas = [0.1, 0.5, 2.0, 5.0]
@@ -74,9 +72,7 @@ def get_tests_results():
                         for f, q in enumerate(qs):
                             for g, sig in enumerate(sigmas):
                                 param_sets.append({'ant_count': count, 'generations': gen, 'alpha': alp, 'beta': bet, 'rho': rho, 'q': q, 'sigma': sig})
-    # todo można zaapendować dodatkowe zestawy z np 150 generations i standardowym zestawem parametrów. zawsze można appendować do csv kolejne porce danych - robić na partie dla bezpieczeństwa
     print(str(len(param_sets)), " tests has been created")
-    # results = []
     start_t = time.time()
 
     # przy tej metodzie niewielki wzrost wydajności
@@ -87,7 +83,7 @@ def get_tests_results():
     print("total execution time: ", execution_time)
     df = pd.DataFrame(master_results)
     # df.to_csv('../../data/results/antsBand_tests3_1.csv', index=False)
-    df.to_csv('../../data/results/antsBand_tests3_2.csv', index=False)  # bez kolumny indexu  todo jakiś generowany name
+    df.to_csv('../../data/results/antsBand_tests3_2.csv', index=False)  # bez kolumny indexu
 
 
 

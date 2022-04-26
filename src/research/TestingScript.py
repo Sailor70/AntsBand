@@ -21,7 +21,6 @@ def get_test_mean(params: dict):
     antsBand = AntsBand(midi_file=MidiFile('../../data/theRockingAnt.mid', clip=True), tracks_numbers=[3],
                         keep_old_timing=True, result_track_length=1, algorithm_type=0, ant_count=params['ant_count'], generations=params['generations'],
                         alpha=params['alpha'], beta=params['beta'], rho=params['rho'], q=params['q'], phi=0.1, q_zero=0.9, sigma=params['sigma'])
-    # todo może tutaj zaimplementować multithreading? 5 rdzeni każdy po 2 wykonania antsBand.start()
     for i in range(10):
         start_time = time.time()
         midi_result, tracks_data, cost = antsBand.start()

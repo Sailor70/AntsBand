@@ -1,7 +1,7 @@
 import random
+import time
 from tkinter import *
 from tkinter import filedialog
-import threading
 from pygame import mixer
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from tkinter import messagebox
@@ -24,7 +24,7 @@ class ResultWindow:
         self.is_playing = False
         self.is_paused = False
         self.radio_var = IntVar()
-        self.file_name = "result" + str(random.randint(0, 10000)) + ".mid"
+        self.file_name = "result" + str(time.time()) + ".mid"
 
         canvas = Canvas(master, width=500, height=600)
         canvas.grid(columnspan=3, rowspan=5)
@@ -45,7 +45,8 @@ class ResultWindow:
         self.execution_time_label.grid(row=3, column=2, sticky='n')
         self.similarity_label.grid(row=4, column=0, columnspan=3, sticky='n')
 
-        self.midi_result.save("./data/" + self.file_name)
+        self.midi_result.save(self.file_name)
+        print('generated file name: ', self.file_name)
         self.init_radio_buttons()
         self.print_plot()
         self.evaluate_melody()
@@ -67,8 +68,6 @@ class ResultWindow:
         ax.set_xlabel('Czas')
         ax.set_title('Linia melodyczna instrumentu')
 
-        # return messagebox.showinfo('PythonGuides', f'You Selected {output}.')
-
     def evaluate_melody(self):
         try:
             self.evaluation_value_label.config(text="Ocena: "+f"{evaluate_melody(self.midi_result, self.tracks_data[self.radio_var.get()]):.3f}")
@@ -76,7 +75,7 @@ class ResultWindow:
             self.similarity_label.config(text="Podobieństwo nut: "+f"{similar_notes_factor*100:.1f}%" + ", czasów: " + f"{similar_times_factor*100:.1f}%")
         except Exception as e:
             messagebox.showerror('Błąd', 'Wystąpił błąd: ' + str(e))
-            raise  # pluje błędem do konsoli
+            raise  # zwraca błąd do konsoli
 
     def init_radio_buttons(self):
         for i in range(len(self.tracks_data)):
@@ -96,7 +95,6 @@ class ResultWindow:
             self.is_playing = False
 
     def stop_playing(self):
-        # stop_music()
         mixer.music.stop()
         self.play_pause_btn.config(text="Graj")
         self.is_playing = False
@@ -106,19 +104,15 @@ class ResultWindow:
         self.refresh()
         if not self.is_playing:
             if self.is_paused:
-                # unpause_music()
                 mixer.music.unpause()
                 self.play_pause_btn.config(text="Pauza")
                 self.is_paused = False
             else:
                 self.play_pause_btn.config(text="Pauza")
-                mixer.music.load("./data/" + self.file_name)
+                mixer.music.load(self.file_name)
                 mixer.music.play()
-                # threading.Thread(target=prepare_and_play("./data/" + self.file_name)).start()
                 self.is_playing = True
         else:
-            # pause_music()
-            # threading.Thread(target=pause_music()).start()
             mixer.music.pause()
             self.play_pause_btn.config(text="Graj")
             self.is_playing = False

@@ -4,10 +4,9 @@ import random
 import numpy as np
 from mido import Message, MidiTrack
 from mido import MidiFile
-from AntSystem import AntSystem, GraphAS
+
 from AntColonySystem import ACS, GraphACS
-from midiPlayer import prepare_and_play
-from AntsBandService import plot, evaluate_melody, calculate_similarity
+from AntSystem import AntSystem, GraphAS
 
 
 class AntsBand(object):
@@ -92,7 +91,7 @@ class AntsBand(object):
         # plot(notes, path)  # wykres
         return [path, cost]
 
-    def quantize_round(self, value):  # obcina dźwięki krótsze niż self.ticks_per_semiquaver/2 ?
+    def quantize_round(self, value):  # obcina dźwięki krótsze niż self.ticks_per_semiquaver/2
         return int(self.ticks_per_semiquaver * round(value / self.ticks_per_semiquaver))
 
     def start(self):
@@ -315,16 +314,16 @@ class AntsBand(object):
         return [self.midi_file, tracks_data]
 
 
-if __name__ == '__main__':
-    # antsBand = AntsBand(midi_file=MidiFile('./data/theRockingAntDrums.mid', clip=True), tracks_numbers=[2, 3],
-    #                     keep_old_timing=False, result_track_length=1, algorithm_type=0, ant_count=10, generations=10,
-    #                     alpha=1.0, beta=5, rho=0.9, q=1, phi=0.1, q_zero=0.9, sigma=10.0)
-    antsBand = AntsBand(midi_file=MidiFile('./data/theRockingAnt.mid', clip=True), tracks_numbers=[2, 3],
-                        keep_old_timing=True, result_track_length=1, algorithm_type=0, ant_count=10, generations=10,
-                        alpha=1.0, beta=5, rho=0.9, q=1, phi=0.1, q_zero=0.9, sigma=10.0)
-    # antsBand.start()
-    # midi_result, tracks_data = antsBand.start_and_divide(4)
-    # midi_result, tracks_data = antsBand.start_and_extend(3, [4])
-    midi_result, tracks_data, cost = antsBand.start()
-    print("Eval result: ", evaluate_melody(midi_result, tracks_data[1]))
-    calculate_similarity(midi_result, tracks_data[1], MidiFile('./data/theRockingAnt.mid', clip=True))
+# if __name__ == '__main__':
+#     # antsBand = AntsBand(midi_file=MidiFile('./data/theRockingAntDrums.mid', clip=True), tracks_numbers=[2, 3],
+#     #                     keep_old_timing=False, result_track_length=1, algorithm_type=0, ant_count=10, generations=10,
+#     #                     alpha=1.0, beta=5, rho=0.9, q=1, phi=0.1, q_zero=0.9, sigma=10.0)
+#     antsBand = AntsBand(midi_file=MidiFile('./data/theRockingAnt.mid', clip=True), tracks_numbers=[2, 3],
+#                         keep_old_timing=True, result_track_length=1, algorithm_type=0, ant_count=10, generations=10,
+#                         alpha=1.0, beta=5, rho=0.9, q=1, phi=0.1, q_zero=0.9, sigma=10.0)
+#     # antsBand.start()
+#     # midi_result, tracks_data = antsBand.start_and_divide(4)
+#     # midi_result, tracks_data = antsBand.start_and_extend(3, [4])
+#     midi_result, tracks_data, cost = antsBand.start()
+#     print("Eval result: ", evaluate_melody(midi_result, tracks_data[1]))
+#     calculate_similarity(midi_result, tracks_data[1], MidiFile('./data/theRockingAnt.mid', clip=True))

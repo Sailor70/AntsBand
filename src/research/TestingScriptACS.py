@@ -19,7 +19,6 @@ def get_test_mean(params: dict):
     antsBand = AntsBand(midi_file=MidiFile('../../data/theRockingAnt.mid', clip=True), tracks_numbers=[3],
                         keep_old_timing=True, result_track_length=1, algorithm_type=1, ant_count=params['ant_count'], generations=params['generations'],
                         alpha=params['alpha'], beta=params['beta'], rho=params['rho'], q=params['q'], phi=params['phi'], q_zero=params['q_zero'], sigma=params['sigma'])
-    # todo może tutaj zaimplementować multithreading? 5 rdzeni każdy po 2 wykonania antsBand.start()
     for i in range(10):
         start_time = time.time()
         midi_result, tracks_data, cost = antsBand.start()
@@ -37,7 +36,6 @@ def get_test_mean(params: dict):
     result = dict_mean(result)
     result["midi_filename"] = file_name
     test = params | result
-    # master_results.append(test)
     return test
 
 def dict_mean(dict_list):
@@ -65,10 +63,10 @@ def get_tests_results():
     # q_zeros = [0.2, 0.5, 0.9]
 
     # faza druga - więcej mrówek i generacji
-    ant_counts = [30, 60]  # 100 to jest fest dużo
+    ant_counts = [30, 60]  # 100 to jest za dużo
     generations = [10, 50]
     alphas = [0.1, 1.0, 5.0]
-    betas = [0.1, 5.0, 10.0]  # tu na pewno trzeba sprawdzić wiele wartości
+    betas = [0.1, 5.0, 10.0]
     rhos = [0.2]
     qs = [1]
     sigmas = [10]
@@ -102,7 +100,7 @@ def get_tests_results():
     print("total execution time: ", execution_time)
     df = pd.DataFrame(results)
     # df.to_csv('../../data/results/results_acs/antsBand_test_acs.csv',index=False) # faza pierwsza
-    df.to_csv('../../data/results/results_acs/antsBand_tests_acs2.csv', index=False)  # bez kolumny indexu  todo jakiś generowany name
+    df.to_csv('../../data/results/results_acs/antsBand_tests_acs2.csv', index=False)  # bez kolumny indexu
 
 
 if __name__ == '__main__':

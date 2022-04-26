@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 from mido import MidiFile
-import scipy.signal as sig
 
 
 def plot(points, path: list):
@@ -112,7 +111,7 @@ def calculate_notes_in_time(track_data, ticks_per_semiquaver, numerator):
     for i, msg in enumerate(track_data['line_melody_track']):
         if hasattr(msg, 'time'):
             time_counter += msg.time
-            if msg.type == 'note_on':
+            if msg.type == 'note_on' and msg.velocity != 0:
                 if time_counter % ticks_per_semiquaver == 0:  # jeśli mieści się w siatce nut (trafia w szesnastkę)
                     eval_notes_time[notes_counter] += 1
                 if time_counter % (ticks_per_semiquaver * 2) == 0:  # ósemka (nuta trafia w którąś z 1/8 taktu)

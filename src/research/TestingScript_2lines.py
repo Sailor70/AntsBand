@@ -90,7 +90,7 @@ def get_tests_results():
     print("total execution time: ", execution_time)
     df = pd.DataFrame(results)
     # df.to_csv('../../data/results/results_2lines/antsBand_test_2lines.csv', index=False)
-    df.to_csv('../../data/results/results_2lines/antsBand_test_2lines2.csv', index=False)  # bez kolumny indexu  todo jakiś generowany name
+    df.to_csv('../../data/results/results_2lines/antsBand_test_2lines2.csv', index=False)  # bez kolumny indexu
 
 
 
