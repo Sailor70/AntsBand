@@ -5,9 +5,9 @@ def play_music(music_file):
     clock = pygame.time.Clock()
     try:
         pygame.mixer.music.load(music_file)
-        print("Music file %s loaded!" % music_file)
+        print('Music file %s loaded!' % music_file)
     except pygame.error:
-        print("File %s not found! (%s)" % (music_file, pygame.get_error()))
+        print('File %s not found! (%s)' % (music_file, pygame.get_error()))
         return
     pygame.mixer.music.play()
     # while pygame.mixer.music.get_busy():
@@ -47,8 +47,8 @@ def prepare_and_play(file):
 
     try:
         # Podaje nazwę pliku z dysku do odtworzenia
-        # play_music("./data/result.mid")
-        # play_music("././data/theRockingAntDrums.mid")
+        # play_music('./data/result.mid')
+        # play_music('././data/theRockingAntDrums.mid')
         play_music(file)
     except KeyboardInterrupt:
         # if user hits Ctrl/C then exit
@@ -59,7 +59,7 @@ def prepare_and_play(file):
 
 
 if __name__ == '__main__':
-    # prepare_and_play("../data/theRockingAntDrums.mid")
-    # prepare_and_play("../data/theRockingAnt.mid")
-    # prepare_and_play("../data/theDreamingAnt.mid")
-    prepare_and_play("../data/FishPolka.mid")
+    # prepare_and_play('../data/theRockingAntDrums.mid')
+    # prepare_and_play('../data/theRockingAnt.mid')
+    # prepare_and_play('../data/theDreamingAnt.mid')
+    prepare_and_play('../data/FishPolka.mid')

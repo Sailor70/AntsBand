@@ -16,10 +16,10 @@ class MainWindow:
 
     def __init__(self, master):
         self.master = master
-        master.title("AntsBand 1.0")
-        master.geometry("650x350")
+        master.title('AntsBand 1.0')
+        master.geometry('650x350')
         # master.resizable(False, False)
-        master.option_add("*Font", "Raleway")  # czcionka globalnie
+        master.option_add('*Font', 'Raleway')  # czcionka globalnie
         master.iconbitmap(r'G:\ProgProjects\Python\AntsBand\src\antIcon.ico')
 
         # zmienne pomocnicze
@@ -48,17 +48,17 @@ class MainWindow:
         """
 
         # definicje elementów layoutu
-        self.file_label = Label(master, text="Wybierz pik midi", font="Raleway")
-        self.browse_btn = Button(master, text="Wybierz", command=lambda: self.open_file(), font="Raleway", bg="#41075e", fg="white", height=1, width=15)
-        self.track_length = Label(master, text="Długość utworu: ", font="Raleway")
+        self.file_label = Label(master, text='Wybierz pik midi', font='Raleway')
+        self.browse_btn = Button(master, text='Wybierz', command=lambda: self.open_file(), font='Raleway', bg='#41075e', fg='white', height=1, width=15)
+        self.track_length = Label(master, text='Długość utworu: ', font='Raleway')
         vcmdInt = (master.register(self.validateInt), '%d', '%i', '%P', '%s', '%S', '%v', '%V', '%W')
         vcmdFloat = (master.register(self.validateFloat), '%d', '%i', '%P', '%s', '%S', '%v', '%V', '%W')
-        self.track_length_entry = Entry(master, text='Długość utworu', validate="key", validatecommand=vcmdInt, width=8)
+        self.track_length_entry = Entry(master, text='Długość utworu', validate='key', validatecommand=vcmdInt, width=8)
         self.keep_timing_checkbox = Checkbutton(master, text='Zachowaj timing', variable=self.keep_old_timing)
         self.mix_phrases_checkbox = Checkbutton(master, text='Mieszaj podział', variable=self.mix_phrases)
         self.split_tracks_checkbox = Checkbutton(master, text='Podziel ścieżki', variable=self.split_tracks, command=lambda: self.split_tracks_change())
-        self.algorithm_label = Label(master, text="Algorytm: ", font="Raleway")
-        self.split_entry = Entry(master, text='Liczba części', validate="key", validatecommand=vcmdInt, width=8)
+        self.algorithm_label = Label(master, text='Algorytm: ', font='Raleway')
+        self.split_entry = Entry(master, text='Liczba części', validate='key', validatecommand=vcmdInt, width=8)
         self.as_radio_btn = Radiobutton(self.master, text='AS', variable=self.algorithm_var, value=0, command=lambda: self.algorithm_change())
         self.acs_radio_btn = Radiobutton(self.master, text='ACS', variable=self.algorithm_var, value=1, command=lambda: self.algorithm_change())
         self.ant_count_label = Label(master, text='l. mrówek')
@@ -70,17 +70,17 @@ class MainWindow:
         self.phi_label = Label(master, text='\u03C6')
         self.q_zero_label = Label(master, text='q0')
         self.sigma_label = Label(master, text='\u03C3')
-        self.ant_count_entry = Entry(master, text='liczba mrówek', validate="key", validatecommand=vcmdInt, width=8)
-        self.generations = Entry(master, text='liczba iteracji', validate="key", validatecommand=vcmdInt, width=8)
-        self.alpha = Entry(master, text='alpha', validate="key", validatecommand=vcmdFloat, width=8)
-        self.beta = Entry(master, text='beta', validate="key", validatecommand=vcmdFloat, width=8)
-        self.rho = Entry(master, text='rho', validate="key", validatecommand=vcmdFloat, width=8)
-        self.q = Entry(master, text='intensywność feromonu', validate="key", validatecommand=vcmdInt, width=8)
-        self.phi = Entry(master, text='współczynnik parowania (lokalny)', validate="key", validatecommand=vcmdFloat, width=8)
-        self.q_zero = Entry(master, text='współczynnik chciwości', validate="key", validatecommand=vcmdFloat, width=8)
-        self.sigma = Entry(master, text='feromon inicjalny', validate="key", validatecommand=vcmdFloat, width=8)
-        self.start_btn = Button(master, text='Komponuj', command=lambda: self.start_ants_band(), font="Raleway", bg="#41075e", fg="white", height=1, width=15)
-        self.exit_btn = Button(master, text='Zakończ', command=self.master.destroy, font="Raleway", bg="#41075e", fg="white", height=1, width=15)
+        self.ant_count_entry = Entry(master, text='liczba mrówek', validate='key', validatecommand=vcmdInt, width=8)
+        self.generations = Entry(master, text='liczba iteracji', validate='key', validatecommand=vcmdInt, width=8)
+        self.alpha = Entry(master, text='alpha', validate='key', validatecommand=vcmdFloat, width=8)
+        self.beta = Entry(master, text='beta', validate='key', validatecommand=vcmdFloat, width=8)
+        self.rho = Entry(master, text='rho', validate='key', validatecommand=vcmdFloat, width=8)
+        self.q = Entry(master, text='intensywność feromonu', validate='key', validatecommand=vcmdInt, width=8)
+        self.phi = Entry(master, text='współczynnik parowania (lokalny)', validate='key', validatecommand=vcmdFloat, width=8)
+        self.q_zero = Entry(master, text='współczynnik chciwości', validate='key', validatecommand=vcmdFloat, width=8)
+        self.sigma = Entry(master, text='feromon inicjalny', validate='key', validatecommand=vcmdFloat, width=8)
+        self.start_btn = Button(master, text='Komponuj', command=lambda: self.start_ants_band(), font='Raleway', bg='#41075e', fg='white', height=1, width=15)
+        self.exit_btn = Button(master, text='Zakończ', command=self.master.destroy, font='Raleway', bg='#41075e', fg='white', height=1, width=15)
 
         # położenie elementów layoutu
         self.file_label.grid(row=0, column=1, columnspan=2)
@@ -138,24 +138,24 @@ class MainWindow:
         q_zero_tip = Balloon(master)
         sigma_tip = Balloon(master)
 
-        ant_count_entry_tip.bind_widget(self.ant_count_entry, balloonmsg="liczba mrówek")
-        generations_tip.bind_widget(self.generations, balloonmsg="liczba iteracji")
-        analpha_tip.bind_widget(self.alpha, balloonmsg="ważność feromonu")
-        beta_tip.bind_widget(self.beta, balloonmsg="ważność informacji heurystycznej")
-        rho_tip.bind_widget(self.rho, balloonmsg="współczynnik odparowania śladu feromonowego")
-        q_tip.bind_widget(self.q, balloonmsg="intensywność feromonu")
-        split_tip.bind_widget(self.split_entry, balloonmsg="Liczba części")
-        phi_tip.bind_widget(self.phi, balloonmsg="Współczynnik odparowania śladu feromonowego (lokalnie, po każdym przejściu)")
-        q_zero_tip.bind_widget(self.q_zero, balloonmsg="Współczynnik chciwości")
-        sigma_tip.bind_widget(self.sigma, balloonmsg="feromon inicjalny")
+        ant_count_entry_tip.bind_widget(self.ant_count_entry, balloonmsg='liczba mrówek')
+        generations_tip.bind_widget(self.generations, balloonmsg='liczba iteracji')
+        analpha_tip.bind_widget(self.alpha, balloonmsg='ważność feromonu')
+        beta_tip.bind_widget(self.beta, balloonmsg='ważność informacji heurystycznej')
+        rho_tip.bind_widget(self.rho, balloonmsg='współczynnik odparowania śladu feromonowego')
+        q_tip.bind_widget(self.q, balloonmsg='intensywność feromonu')
+        split_tip.bind_widget(self.split_entry, balloonmsg='Liczba części')
+        phi_tip.bind_widget(self.phi, balloonmsg='Współczynnik odparowania śladu feromonowego (lokalnie, po każdym przejściu)')
+        q_zero_tip.bind_widget(self.q_zero, balloonmsg='Współczynnik chciwości')
+        sigma_tip.bind_widget(self.sigma, balloonmsg='feromon inicjalny')
 
-        self.mix_phrases_checkbox["state"] = "disabled"
-        self.start_btn["state"] = "disabled"
-        self.phi["state"] = "disabled"
-        self.q_zero["state"] = "disabled"
+        self.mix_phrases_checkbox['state'] = 'disabled'
+        self.start_btn['state'] = 'disabled'
+        self.phi['state'] = 'disabled'
+        self.q_zero['state'] = 'disabled'
 
     def open_file(self):
-        file = askopenfile(parent=self.master, mode='rb', title="Wybierz plik midi", filetypes=[("Midi file", "*.mid")])
+        file = askopenfile(parent=self.master, mode='rb', title='Wybierz plik midi', filetypes=[('Midi file', '*.mid')])
         if file:
             self.file_label.config(text=os.path.basename(file.name))
         self.midi_input = MidiFile(file.name, clip=True)
@@ -164,7 +164,7 @@ class MainWindow:
     def init_instruments_checkboxes(self, mid: MidiFile):
         self.instruments = []
         for label in self.master.grid_slaves():  # usunięcie starych checkboxów
-            if int(label.grid_info()["row"]) == 1:
+            if int(label.grid_info()['row']) == 1:
                 label.grid_forget()
         for i in range(len(mid.tracks)):  # szukanie instrumentów w pliku
             for msg in mid.tracks[i]:
@@ -173,7 +173,7 @@ class MainWindow:
                         {'name': msg.name, 'id': i})  # nazwa instrumentu i index ścieżki
                     break
         # print(self.instruments)
-        self.start_btn["state"] = "normal"
+        self.start_btn['state'] = 'normal'
         for j in range(len(self.instruments)):  # utworzenie nowych checkboxów
             var = IntVar()
             c = Checkbutton(self.master, text=self.instruments[j]['name'], variable=var)
@@ -183,17 +183,17 @@ class MainWindow:
     def algorithm_change(self):
         print(str(self.algorithm_var.get()))
         if self.algorithm_var.get() == 0:
-            self.phi["state"] = "disabled"
-            self.q_zero["state"] = "disabled"
+            self.phi['state'] = 'disabled'
+            self.q_zero['state'] = 'disabled'
         else:
-            self.phi["state"] = "normal"
-            self.q_zero["state"] = "normal"
+            self.phi['state'] = 'normal'
+            self.q_zero['state'] = 'normal'
 
     def split_tracks_change(self):
         if self.split_tracks.get():
-            self.mix_phrases_checkbox["state"] = "normal"
+            self.mix_phrases_checkbox['state'] = 'normal'
         else:
-            self.mix_phrases_checkbox["state"] = "disabled"
+            self.mix_phrases_checkbox['state'] = 'disabled'
 
     def start_ants_band(self):
         selected_paths = []
@@ -227,7 +227,7 @@ class MainWindow:
             self.openNext(midi_result, tracks_data, execution_time)
         except Exception as e:
             messagebox.showerror('Błąd', 'Wystąpił błąd: ' + str(e))
-            raise  # pluje błędem do konsoli
+            raise  # zwraca błąd do konsoli
 
     def validateInt(self, action, index, value_if_allowed,
                        prior_value, text, validation_type, trigger_type, widget_name):

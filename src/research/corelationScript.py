@@ -1,6 +1,5 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
 
 #  wybrać 1 zestaw - pozostałe zakomentować i uruchomić.
 # test1_name = 'antsBand_tests2'
@@ -70,11 +69,6 @@ cb.ax.tick_params(labelsize=14)
 plt.title('Macierz korelacji', fontsize=16)
 plt.savefig(root_path + folder_name + '/' + test1_name + '_plot.png')
 plt.show()
-
-# plot alternatywny
-# plt.figure(figsize=(12,8))
-# sns.heatmap(correlation, cmap="Greens")
-# plt.show()
 
 #### MAX/MIN values
 # print(col_names)

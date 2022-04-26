@@ -47,13 +47,11 @@ class ACS(object):
         best_cost = float('inf')
         best_solution = []
         for gen in range(self.generations):
-            # print('Generation ', gen)
             ants = [AntACS(self, graph) for i in range(self.ant_count)]
             for ant in ants:
                 ant.generate_path()
                 if ant.total_cost < best_cost:
                     best_cost = ant.total_cost
-                    # print('Best cost update: ', best_cost)
                     best_solution = [] + ant.tabu
             self._update_global_pheromone(graph, best_solution, best_cost)
         return best_solution, best_cost

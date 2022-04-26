@@ -26,8 +26,8 @@ def get_test_mean(params: dict):
         midi_result, tracks_data, cost = antsBand.start_and_divide(4, True)
         execution_time = time.time() - start_time
         if i == 1:
-            file_name = "result_test" + str(time.time()) + ".mid"
-            midi_result.save("../../data/results/results3/2/" + file_name)
+            file_name = 'result_test' + str(time.time()) + '.mid'
+            midi_result.save('../../data/results/results3/2/' + file_name)
         evaluation_result, notes_in_time_factor, repeated_sequences_factor, cosonance_factor = evaluate_melody_for_testing(midi_result, tracks_data[0])
         similar_notes_factor, similar_times_factor = calculate_similarity(midi_result, tracks_data[0], MidiFile(
             '../../data/theRockingAntDrums.mid', clip=True))
@@ -35,7 +35,7 @@ def get_test_mean(params: dict):
                        'cosonance_factor': cosonance_factor, 'similar_notes_factor': similar_notes_factor, 'similar_times_factor': similar_times_factor,
                        'execution_time': execution_time, 'cost': cost[0]})
     result = dict_mean(result)
-    result["midi_filename"] = file_name
+    result['midi_filename'] = file_name
     test = params | result
     master_results.append(test)
 
@@ -72,7 +72,7 @@ def get_tests_results():
                         for f, q in enumerate(qs):
                             for g, sig in enumerate(sigmas):
                                 param_sets.append({'ant_count': count, 'generations': gen, 'alpha': alp, 'beta': bet, 'rho': rho, 'q': q, 'sigma': sig})
-    print(str(len(param_sets)), " tests has been created")
+    print(str(len(param_sets)), ' tests has been created')
     start_t = time.time()
 
     # przy tej metodzie niewielki wzrost wydajności
@@ -80,7 +80,7 @@ def get_tests_results():
         delayed(has_shareable_memory)(get_test_mean(params)) for params in param_sets)
 
     execution_time = time.time() - start_t
-    print("total execution time: ", execution_time)
+    print('total execution time: ', execution_time)
     df = pd.DataFrame(master_results)
     # df.to_csv('../../data/results/antsBand_tests3_1.csv', index=False)
     df.to_csv('../../data/results/antsBand_tests3_2.csv', index=False)  # bez kolumny indexu

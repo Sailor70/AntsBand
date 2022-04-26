@@ -48,9 +48,7 @@ class AntSystem(object):
                     best_cost = ant.total_cost
                     best_solution = [] + ant.tabu
                 ant.update_pheromone_delta()  # każda mrówka kładzie swój własny feromon po przejściu
-            # print('best solution in gen #{}, cost: {}, path: {}'.format(gen, best_cost, best_solution))
             self._update_pheromone(graph, ants)
-            # print('generation #{}, best cost: {}, path: {}'.format(gen, best_cost, best_solution))
         return best_solution, best_cost
 
     def _update_pheromone(self, graph: GraphAS, ants: list):
@@ -72,7 +70,6 @@ class AntAS(object):
         self.eta = [[0 if i == j else 1 / graph.cost_matrix[i][j] for j in range(graph.N)] for i in
                     range(graph.N)]  # informacja heurystyczna
         start = random.randint(0, graph.N - 1)  # rozpoczęcie z losowego węzła
-        # start = 0  # rozpoczęcie z pierwszego - zawsze zagra oryginalną melodię
         self.tabu.append(start)
         self.current = start
         self.unvisited.remove(start)
