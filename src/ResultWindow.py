@@ -1,4 +1,3 @@
-import random
 import time
 from tkinter import *
 from tkinter import filedialog
@@ -64,9 +63,9 @@ class ResultWindow:
         ax.scatter(x, y, color='g')
         scatter = FigureCanvasTkAgg(figure, self.master)
         scatter.get_tk_widget().grid(row=2, column=0, columnspan=3, sticky='enw')
-        ax.legend(['Wartości kolejnych nut'])
+        ax.legend(['Wysokości dźwięków'])
         ax.set_xlabel('Czas')
-        ax.set_title('Linia melodyczna instrumentu')
+        ax.set_title('Melodia instrumentu')
 
     def evaluate_melody(self):
         try:

@@ -113,11 +113,11 @@ class AntsBand(object):
     def replicate_and_correct_time(self, line_notes_messages: list, track_length):
         tact_length = self.ticks_per_beat * self.midi_file.tracks[0][0].numerator
         time_counter = 0
-        for i, msg in enumerate(line_notes_messages):  # obliczenie całkowitego czasu linii melodycznej
+        for i, msg in enumerate(line_notes_messages):  # obliczenie całkowitego czasu melodii
             time_counter += msg[0].time
             time_counter += msg[1].time
         last_tact_time = time_counter % tact_length  # taka wartość czasu brakuje w ostatnim takcie aby był pełny
-        time_to_add = tact_length - last_tact_time  # taką wartość czasu należy dodać do kolejnej powtórzonej linii melodycznej
+        time_to_add = tact_length - last_tact_time  # taką wartość czasu należy dodać do kolejnej powtórzonej melodii
         next_line = copy.deepcopy(line_notes_messages)
         next_line[0][0].time += time_to_add  # dodanie brakującego czasu do pierwszego eventu kolejnego powtórzenia melodii
         for i in range(track_length-1):

@@ -123,4 +123,4 @@ def check_notes_sequences_repetition(notes):  # mierzy powtarzalność sekwencji
     # print('max_phrase_occurances: ', max_phrase_occurances)
     # print('phrase_occurances: ', phrase_occurances)
     # print('lendata: ', lendata)
-    return phrase_occurances/max_phrase_occurances  # linia melodyczna złożona z dźwięków jednej wysokości (tych samych) ma factor 1
+    return phrase_occurances/max_phrase_occurances  # melodia złożona z dźwięków jednej wysokości (tych samych) ma factor 1
