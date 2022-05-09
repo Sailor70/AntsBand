@@ -7,6 +7,6 @@ This project was developed as part of my thesis at IT studies.
 
 ## Screenshots
 
-![alt tag](https://github.com/Sailor70/AntsBand/tree/master/screenshots/AntsBandGui.png)
+![alt tag](https://github.com/Sailor70/AntsBand/blob/master/screenshots/AntsBandGui.png)
 
-![alt tag](https://github.com/Sailor70/tree/master/screenshots/ResultWindow.png)
+![alt tag](https://github.com/Sailor70/AntsBand/blob/master/screenshots/ResultWindow.png)
