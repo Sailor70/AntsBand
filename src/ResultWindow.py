@@ -77,6 +77,9 @@ class ResultWindow:
             raise  # zwraca błąd do konsoli
 
     def init_radio_buttons(self):
+        for elem in self.master.grid_slaves():  # usunięcie starych Radiobutton
+            if int(elem.grid_info()['row']) == 1:
+                elem.grid_forget()
         for i in range(len(self.tracks_data)):
             for msg in self.tracks_data[i]['line_melody_track']:
                 if hasattr(msg, 'name'):
@@ -125,4 +128,9 @@ class ResultWindow:
         new_midi = delete_other_tracks(self.midi_result, self.tracks_data[self.radio_var.get()]['track_number'])
         path = filedialog.asksaveasfile(mode='w', title='Zapisz odseparowaną ścieżkę', defaultextension='.mid', filetypes=(('Midi file', '*.mid'),('All Files', '*.*')))
         new_midi.save(path.name)
+        separated_name = 'separated' + str(time.time()) + '.mid'
+        new_midi.save(separated_name)
+        self.file_name = separated_name
         self.midi_result = new_midi
+        self.tracks_data.pop(self.radio_var.get())
+        self.init_radio_buttons()

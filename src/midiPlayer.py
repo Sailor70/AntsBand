@@ -59,7 +59,7 @@ def prepare_and_play(file):
 
 
 if __name__ == '__main__':
-    # prepare_and_play('../data/theRockingAntDrums.mid')
+    prepare_and_play('../data/theRockingAntDrums.mid')
     # prepare_and_play('../data/theRockingAnt.mid')
     # prepare_and_play('../data/theDreamingAnt.mid')
-    prepare_and_play('../data/FishPolka.mid')
+    # prepare_and_play('../data/FishPolka.mid')

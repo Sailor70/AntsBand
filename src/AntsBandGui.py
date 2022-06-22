@@ -44,7 +44,6 @@ class MainWindow:
         :param beta: ważność informacji heurystycznej
         :param rho: współczynnik odparowania śladu feromonowego
         :param q: intensywność feromonu
-        :param strategy: strategia aktualizacji śladu feromonowego. 0 - ant-cycle, 1 - ant-quality, 2 - ant-density
         """
 
         # definicje elementów layoutu
